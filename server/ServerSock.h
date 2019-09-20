@@ -30,7 +30,6 @@
 #include <time.h>
 #include <locale.h>
 #define DEFAULT_SERVER_PORT 8080
-void handle_client(int client_socket);
 
 
 class ServerSock {
@@ -39,8 +38,12 @@ public:
 	ServerSock(unsigned int port);
 	virtual ~ServerSock();
 	void init();
-	void enter_server_loop();
+	void * enter_server_loop();
+	static void *loop_helper(void *context){
+		return ((ServerSock *)context)->enter_server_loop();
+	}
 private:
+	void handle_client(int client_socket);
 	unsigned int port;
 	int sockfd;
 	pthread_mutex_t mlock;

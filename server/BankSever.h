@@ -20,7 +20,7 @@
 #include "Customer.h"
 
 typedef void * (*THREADFUNCPTR)(void *);
-#define THREADS_COUNT 100
+#define THREADS_COUNT 10
 
 
 template <size_t N>

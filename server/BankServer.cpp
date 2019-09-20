@@ -15,7 +15,7 @@ BankServer::BankServer() {
 }
 
 BankServer::~BankServer() {
-	//delete serverSock;
+	delete serverSock;
 }
 
 void BankServer::init(){
@@ -67,15 +67,14 @@ void BankServer::print_stats(int signal_Number) {
 
 
 void BankServer::create_thread(int index, ServerSock *serverSock) {
-	pthread_create(&threads[index], NULL, (THREADFUNCPTR) &ServerSock::enter_server_loop, &serverSock);
-	std::cout<<"created thread successfully : "<<index<<std::endl;
+	pthread_create(&threads[index], NULL, &ServerSock::loop_helper, serverSock);
 }
 
 
 int main(int argc, char **argv) {
 		BankServer server;
 	    std::signal(SIGINT, server.print_stats);
-	    signal(SIGPIPE, SIG_IGN);
+	    signal(SIGPIPE, server.print_stats);
 	    server.init();
 	    for (;;)
 	        pause();

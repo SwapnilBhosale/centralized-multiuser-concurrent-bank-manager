@@ -9,13 +9,14 @@
 #include <exception>
 
 ServerSock::ServerSock() {
-	this->port = DEFAULT_SERVER_PORT;
 	sockfd = 0;
+	port = DEFAULT_SERVER_PORT;
+	mlock = PTHREAD_MUTEX_INITIALIZER;
 
 }
 
-ServerSock::ServerSock(unsigned int port) {
-	this->port = port;
+ServerSock::ServerSock(unsigned int p) {
+	port = p;
 	sockfd = 0;
 	mlock = PTHREAD_MUTEX_INITIALIZER;
 }
@@ -24,14 +25,13 @@ ServerSock::~ServerSock() {
 }
 
 void ServerSock::init() {
-	int sock;
 	struct sockaddr_in srv_addr;
-	sock = socket(PF_INET, SOCK_STREAM, 0);
-	if (sock <= 0)
+	sockfd = socket(PF_INET, SOCK_STREAM, 0);
+	if (sockfd <= 0)
 		perror( "error : socket()");
 
 	int enable = 1;
-	if (setsockopt(sock,
+	if (setsockopt(sockfd,
 			SOL_SOCKET, SO_REUSEADDR,
 			&enable, sizeof(int)) < 0)
 		perror("setsockopt(SO_REUSEADDR)");
@@ -44,41 +44,36 @@ void ServerSock::init() {
 	/* We bind to a port and turn this socket into a listening
 	 * socket.
 	 * */
-	if (bind(sock, (const struct sockaddr *)&srv_addr, sizeof(srv_addr)) < 0)
+	if (bind(sockfd, (const struct sockaddr *)&srv_addr, sizeof(srv_addr)) < 0)
 		perror("Error:bind()");
 
-	if (listen(sock, 10) < 0){
+	if (listen(sockfd, 10) < 0){
 		perror("error: listen()");
 		exit(1);
 	}
 	std::cout<<"server listening on port "<<this->port <<std::endl;
-	this->sockfd = sock;
 }
 
-void ServerSock::enter_server_loop() {
+void * ServerSock::enter_server_loop() {
 	struct sockaddr_in client_addr;
 	socklen_t client_addr_len = sizeof(client_addr);
-	std::cout<<"accepting for : "<<this->sockfd<<std::endl;
 	while (1)
 	{
-		//std::cout<<"before lock access";
-		try{
-			pthread_mutex_lock(&mlock);
-			std::cout<<"got lock for thread : "<<pthread_self()<<std::endl;
-			int client_socket = accept(
-					this->sockfd,
-					(struct sockaddr *)&client_addr,
-					&client_addr_len);
-			//std::cout<<"after accepting the client connection, thread id:"<<pthread_self()<<std::endl;
-			if (client_socket < 0)
-				perror("accept error");
+		pthread_mutex_lock(&mlock);
+		int client_socket = accept(
+				sockfd,
+				(struct sockaddr *)&client_addr,
+				&client_addr_len);
+		//std::cout<<"after accepting the client connection, thread id:"<<pthread_self()<<std::endl;
+		if (client_socket < 0) {
+			perror("accept error");
 			pthread_mutex_unlock(&mlock);
-
-			handle_client(client_socket);
-		} catch(std::exception& e){
-			perror("error occures");
-			std::cout<<"error :"<<e.what() <<std::endl;
+			return NULL;
 		}
+
+		pthread_mutex_unlock(&mlock);
+
+		handle_client(client_socket);
 	}
 }
 
@@ -101,9 +96,8 @@ int get_line(int sock, char *buf, int size) {
 	return (i);
 }
 
-void handle_client(int client_socket) {
+void ServerSock::handle_client(int client_socket) {
 	char *line_buffer = (char *)malloc(sizeof(1024));
-	std::cout<<"inside handle client for socket id:"<<client_socket<<std::endl;
 	/*
 	 * Setup a timeout on recv() on the client socket
 	 * */
