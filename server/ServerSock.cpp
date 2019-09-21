@@ -12,16 +12,26 @@ ServerSock::ServerSock() {
 	sockfd = 0;
 	port = DEFAULT_SERVER_PORT;
 	mlock = PTHREAD_MUTEX_INITIALIZER;
-
+	obj = ObserverPattern::get_instance();
 }
 
-ServerSock::ServerSock(unsigned int p) {
-	port = p;
-	sockfd = 0;
-	mlock = PTHREAD_MUTEX_INITIALIZER;
-}
 
 ServerSock::~ServerSock() {
+}
+
+void ServerSock::perform_action(char *data){
+
+
+	/*switch(arr[2]) {
+	case "w" :
+		withdrawal(arr[0], arr[1], arr[3]);
+		break;
+	case "d" :
+		deposit(arr[0], arr[1], arr[3]);
+		break;
+	default:
+		break;
+	}*/
 }
 
 void ServerSock::init() {
@@ -79,10 +89,6 @@ void * ServerSock::enter_server_loop() {
 
 int get_line(int sock, char *buf, int size) {
 	ssize_t n;
-
-	//while ((i < size - 1) && (c != '\n'))
-	//{
-
 	int i = 0;
 	char c;
 	while(i<size && c != '\n'){
@@ -97,21 +103,20 @@ int get_line(int sock, char *buf, int size) {
 }
 
 void ServerSock::handle_client(int client_socket) {
-	char *line_buffer = (char *)malloc(sizeof(1024));
-	/*
-	 * Setup a timeout on recv() on the client socket
-	 * */
+	char *buffer = (char *)malloc(sizeof(1024));
+
 	struct timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
-	unsigned long len = get_line(client_socket, line_buffer, sizeof(line_buffer));
+	unsigned long len = get_line(client_socket, buffer, 1024);
 	if(len > 0){
 		std::cout<<"received data of bytes "<<len<<std::endl;
-		std::cout<<"received Data : "<<line_buffer<<std::endl;
+		std::cout<<"received Data : "<<buffer<<std::endl;
 	}
-	free(line_buffer);
+	obj->notify_observants(buffer);
+	free(buffer);
 	close(client_socket);
 	return;
 }

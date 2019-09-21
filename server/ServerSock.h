@@ -29,13 +29,14 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <locale.h>
+#include "util.h"
+#include "ObserverPattern.h"
 #define DEFAULT_SERVER_PORT 8080
 
 
 class ServerSock {
 public:
 	ServerSock();
-	ServerSock(unsigned int port);
 	virtual ~ServerSock();
 	void init();
 	void * enter_server_loop();
@@ -47,6 +48,8 @@ private:
 	unsigned int port;
 	int sockfd;
 	pthread_mutex_t mlock;
+	ObserverPattern *obj;
+	void perform_action(char *arr);
 };
 
 #endif /* SERVERSOCK_H_ */

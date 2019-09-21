@@ -10,14 +10,13 @@
 
 
 class Transaction {
+	friend class TransactionBuilder;
 private:
 	std::string name;
 	int account_number;
 	char type;
 	long int amount;
 public:
-	Transaction();
-
 	int getAccountNumber() const
 	{
 		return account_number;
@@ -61,32 +60,35 @@ public:
 
 class TransactionBuilder{
 public:
-	Transaction *t;
+	Transaction t;
 	TransactionBuilder(){
-		t = new Transaction();
+		t.account_number = 0;
+		t.amount = 0;
+		t.name = "";
+		t.type = ' ';
 	}
 
 	TransactionBuilder set_name(std::string name){
-		t->setName(name);
+		t.setName(name);
 		return *this;
 	}
 
 	TransactionBuilder set_transaction_type(char type) {
-		t->setType(type);
+		t.setType(type);
 		return *this;
 	}
 
 	TransactionBuilder set_amount(long int amount) {
-		t->setAmount(amount);
+		t.setAmount(amount);
 		return *this;
 	}
 
 	TransactionBuilder set_account_number(int account_number) {
-		t->setAccountNumber(account_number);
+		t.setAccountNumber(account_number);
 		return *this;
 	}
 
-	Transaction * build(){
+	Transaction  build(){
 		return t;
 	}
 

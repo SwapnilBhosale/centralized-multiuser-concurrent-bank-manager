@@ -5,13 +5,80 @@
  *      Author: lilbase
  */
 
-#include "BankSever.h"
+#include "BankServer.h"
 #include "ServerSock.h"
 
 BankServer::BankServer() {
 	 //std::cout.flush();
 	 serverSock = NULL;
 
+}
+
+void BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string amt){
+	int int_acc_no = stoi(acc_no);
+	if (customer_map.find(int_acc_no) == customer_map.end()){
+		std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
+		return;
+	}
+
+	Customer c  = customer_map.at(stoi(acc_no));
+	std::vector<Transaction> &v = transaction_map[int_acc_no];
+	TransactionBuilder b;
+	long amount = stol(amt);
+	if(c.getBalance() < amount) {
+		std::cout<<"Can't perform withdrawal for "<<c.getName()
+				<<". Current balance is "<<c.getBalance()<<" less than requested amount: "
+				<<amount<<std::endl;
+		return;
+	}
+	Transaction trans = b.set_account_number(int_acc_no)
+						.set_name(c.getName())
+						.set_transaction_type('W')
+						.set_amount(stol(amt))
+						.build();
+	v.push_back(trans);
+	c.setBalance((c.getBalance() - trans.getAmount()));
+	customer_map[int_acc_no] = c;
+	std::cout<<"Successfull withdrawl :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
+}
+
+void BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
+	int int_acc_no = stoi(acc_no);
+		if (customer_map.find(int_acc_no) == customer_map.end()){
+			std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
+			return;
+		}
+
+		Customer c  = customer_map.at(stoi(acc_no));
+		std::vector<Transaction> &v = transaction_map[int_acc_no];
+		TransactionBuilder b;
+		long amount = stol(amt);
+		Transaction trans = b.set_account_number(int_acc_no)
+							.set_name(c.getName())
+							.set_transaction_type('W')
+							.set_amount(stol(amt))
+							.build();
+		v.push_back(trans);
+		c.setBalance((c.getBalance() + trans.getAmount()));
+		customer_map[int_acc_no] = c;
+		std::cout<<"Successfull deposit :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
+}
+
+void BankServer::do_action(char * data){
+	std::string arr[4];
+	splitString(arr, data);
+
+	char choice = arr[2][0];
+	switch(toupper(choice)) {
+		case 'W':
+			withdrawal(arr[0], arr[1], arr[3]);
+			break;
+		case 'D':
+			deposit(arr[0], arr[1], arr[3]);
+			break;
+		default:
+			break;
+	}
 }
 
 BankServer::~BankServer() {
@@ -26,6 +93,7 @@ void BankServer::init(){
 		create_thread(i, serverSock);
 	}
 }
+
 
 void BankServer::initialize_static_data(){
 	std::ifstream file;
@@ -73,9 +141,13 @@ void BankServer::create_thread(int index, ServerSock *serverSock) {
 
 int main(int argc, char **argv) {
 		BankServer server;
+		ObserverPattern *obj = ObserverPattern::get_instance();
+		Observer *ob = &server;
+		obj -> add_observant(ob);
 	    std::signal(SIGINT, server.print_stats);
 	    signal(SIGPIPE, server.print_stats);
 	    server.init();
 	    for (;;)
 	        pause();
+
 }
