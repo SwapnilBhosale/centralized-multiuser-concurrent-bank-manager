@@ -7,13 +7,15 @@
 
 #ifndef SERVER_CUSTOMER_H_
 #define SERVER_CUSTOMER_H_
+#include <math.h>
+#include "constants.h"
 
 class Customer {
 	friend class CustomerBuilder;
 private:
 	std::string name;
 	int account_number;
-	long int balance;
+	long double balance;
 public:
 	int getAccountNumber() const
 	{
@@ -25,12 +27,12 @@ public:
 		account_number = accountNumber;
 	}
 
-	long int getBalance() const
+	long double getBalance() const
 	{
 		return balance;
 	}
 
-	void setBalance(long int balance)
+	void setBalance(double balance)
 	{
 		this->balance = balance;
 	}
@@ -43,6 +45,23 @@ public:
 	void setName(const std::string& name)
 	{
 		this->name = name;
+	}
+
+	void add_money(double money) {
+		this -> balance = this -> balance + money;
+	}
+
+	void reduce_money(double money) {
+		this -> balance = this ->balance - money ;
+	}
+
+	bool can_withdraw(double money) {
+		return this -> balance < money;
+	}
+
+	double calculate_intrest() {
+		double updated_amount = roundf(this -> balance  + ( (this ->balance * INTREST_RATE) / 100 ));
+		return updated_amount;
 	}
 };
 

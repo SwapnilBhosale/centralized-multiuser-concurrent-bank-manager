@@ -8,12 +8,64 @@
 #include "BankServer.h"
 
 BankServer::BankServer() {
-	 //std::cout.flush();
-	 serverSock = NULL;
+	//std::cout.flush();
+	intrest_service__thread = 0;
+	serverSock = NULL;
 
 }
 
+void BankServer::update_customer_map(Customer c){
+	customer_map[c.getAccountNumber()] = c;
+}
+
+void *BankServer::handle_intrest_service(){
+	std::unordered_map<int, Customer>:: iterator itr;
+	while(true){
+		sleep(INTREST_SERVICE_SCHEDULE);
+		for (itr = customer_map.begin(); itr != customer_map.end(); itr++) {
+			int act_no = itr -> first;
+			Customer c = itr -> second;
+			double updated_bal = c.calculate_intrest();
+			c.add_money(updated_bal);
+			update_customer_map(c);
+		}
+		std::cout << "Intrest service ran!"<<std::endl;
+	}
+}
+
+void BankServer::create_intrest_service(){
+	pthread_create(&intrest_service__thread, NULL, &BankServer::intrest_service_invoke_helper, this);
+}
 void BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string amt){
+	int int_acc_no = stoi(acc_no);
+	if (customer_map.find(int_acc_no) == customer_map.end()){
+		std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
+		return;
+	}
+
+	Customer c  = customer_map.at(stoi(acc_no));
+	std::vector<Transaction> &v = transaction_map[int_acc_no];
+	long amount = stol(amt);
+	if(!c.can_withdraw(amount)) {
+		std::cout<<"Can't perform withdrawal for "<<c.getName()
+						<<". Current balance is "<<c.getBalance()<<" less than requested amount: "
+						<<amount<<std::endl;
+		return;
+	}
+
+	TransactionBuilder b;
+	Transaction trans = b.set_account_number(int_acc_no)
+								.set_name(c.getName())
+								.set_transaction_type('W')
+								.set_amount(amount)
+								.build();
+	v.push_back(trans);
+	c.reduce_money(amount);
+	update_customer_map(c);
+	std::cout<<"Successfull withdrawl :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
+}
+
+void BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
 	int int_acc_no = stoi(acc_no);
 	if (customer_map.find(int_acc_no) == customer_map.end()){
 		std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
@@ -24,43 +76,15 @@ void BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string 
 	std::vector<Transaction> &v = transaction_map[int_acc_no];
 	TransactionBuilder b;
 	long amount = stol(amt);
-	if(c.getBalance() < amount) {
-		std::cout<<"Can't perform withdrawal for "<<c.getName()
-				<<". Current balance is "<<c.getBalance()<<" less than requested amount: "
-				<<amount<<std::endl;
-		return;
-	}
 	Transaction trans = b.set_account_number(int_acc_no)
-						.set_name(c.getName())
-						.set_transaction_type('W')
-						.set_amount(stol(amt))
-						.build();
+									.set_name(c.getName())
+									.set_transaction_type('W')
+									.set_amount(amount)
+									.build();
 	v.push_back(trans);
-	c.setBalance((c.getBalance() - trans.getAmount()));
-	customer_map[int_acc_no] = c;
-	std::cout<<"Successfull withdrawl :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
-}
-
-void BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
-	int int_acc_no = stoi(acc_no);
-		if (customer_map.find(int_acc_no) == customer_map.end()){
-			std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
-			return;
-		}
-
-		Customer c  = customer_map.at(stoi(acc_no));
-		std::vector<Transaction> &v = transaction_map[int_acc_no];
-		TransactionBuilder b;
-		long amount = stol(amt);
-		Transaction trans = b.set_account_number(int_acc_no)
-							.set_name(c.getName())
-							.set_transaction_type('W')
-							.set_amount(stol(amt))
-							.build();
-		v.push_back(trans);
-		c.setBalance((c.getBalance() + trans.getAmount()));
-		customer_map[int_acc_no] = c;
-		std::cout<<"Successfull deposit :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
+	c.add_money(amount);
+	update_customer_map(c);
+	std::cout<<"Successfull deposit :"<<amount<<", balance is : "<<c.getBalance()<<std::endl;
 }
 
 void BankServer::do_action(char * data){
@@ -69,14 +93,14 @@ void BankServer::do_action(char * data){
 
 	char choice = arr[2][0];
 	switch(toupper(choice)) {
-		case 'W':
-			withdrawal(arr[0], arr[1], arr[3]);
-			break;
-		case 'D':
-			deposit(arr[0], arr[1], arr[3]);
-			break;
-		default:
-			break;
+	case 'W':
+		withdrawal(arr[0], arr[1], arr[3]);
+		break;
+	case 'D':
+		deposit(arr[0], arr[1], arr[3]);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -88,6 +112,7 @@ void BankServer::init(){
 	initialize_static_data();
 	serverSock = new ServerSock();
 	serverSock -> init();
+	create_intrest_service();
 	for (int i = 0; i < THREADS_COUNT; ++i) {
 		create_thread(i, serverSock);
 	}
@@ -105,9 +130,9 @@ void BankServer::initialize_static_data(){
 
 			CustomerBuilder b;
 			Customer c = b.set_account_number(std::stoi(arr[0]))
-							.set_name(arr[1])
-							.set_balance(std::stol(arr[2]))
-							.build();
+									.set_name(arr[1])
+									.set_balance(std::stol(arr[2]))
+									.build();
 			customer_map.insert(std::make_pair(c.getAccountNumber(), c));
 		}
 	}
@@ -117,36 +142,37 @@ void BankServer::initialize_static_data(){
 
 
 void BankServer::print_stats(int signal_Number) {
-    double user, sys;
-    struct rusage   myusage;
+	double user, sys;
+	struct rusage   myusage;
 
-    if (getrusage(RUSAGE_SELF, &myusage) < 0)
-        std::cout<< "Error: getrusage()";
+	if (getrusage(RUSAGE_SELF, &myusage) < 0)
+		std::cout<< "Error: getrusage()";
 
-    user = (double) myusage.ru_utime.tv_sec +
-                    myusage.ru_utime.tv_usec/1000000.0;
-    sys = (double) myusage.ru_stime.tv_sec +
-                   myusage.ru_stime.tv_usec/1000000.0;
+	user = (double) myusage.ru_utime.tv_sec +
+			myusage.ru_utime.tv_usec/1000000.0;
+	sys = (double) myusage.ru_stime.tv_sec +
+			myusage.ru_stime.tv_usec/1000000.0;
 
-    printf("\nuser time = %g, sys time = %g\n", user, sys);
-    exit(0);
+	printf("\nuser time = %g, sys time = %g\n", user, sys);
+	exit(0);
 }
 
 
 void BankServer::create_thread(int index, ServerSock *serverSock) {
-	pthread_create(&threads[index], NULL, &ServerSock::loop_helper, serverSock);
+	pthread_create(&threads[index], NULL, &ServerSock::thread_pool_loop_helper, serverSock);
 }
 
 
 int main(int argc, char **argv) {
-		BankServer server;
-		ObserverPattern *obj = ObserverPattern::get_instance();
-		Observer *ob = &server;
-		obj -> add_observant(ob);
-	    std::signal(SIGINT, server.print_stats);
-	    signal(SIGPIPE, server.print_stats);
-	    server.init();
-	    for (;;)
-	        pause();
+	BankServer server;
+	ObserverPattern *obj = ObserverPattern::get_instance();
+	Observer *ob = &server;
+	obj -> add_observant(ob);
+	std::signal(SIGINT, server.print_stats);
+	signal(SIGPIPE, server.print_stats);
+	server.init();
+	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
+	//for (;;)
+		//  pause();
 
 }

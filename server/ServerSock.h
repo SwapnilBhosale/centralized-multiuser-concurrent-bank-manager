@@ -41,7 +41,7 @@ public:
 	virtual ~ServerSock();
 	void init();
 	void * enter_server_loop();
-	static void *loop_helper(void *context){
+	static void *thread_pool_loop_helper(void *context){
 		return ((ServerSock *)context)->enter_server_loop();
 	}
 private:
