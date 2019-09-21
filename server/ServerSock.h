@@ -49,7 +49,6 @@ private:
 	int sockfd;
 	pthread_mutex_t mlock;
 	ObserverPattern *obj;
-	void perform_action(char *arr);
 };
 
 #endif /* SERVERSOCK_H_ */

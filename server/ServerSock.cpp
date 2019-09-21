@@ -20,20 +20,6 @@ ServerSock::ServerSock() {
 ServerSock::~ServerSock() {
 }
 
-void ServerSock::perform_action(char *data){
-
-
-	/*switch(arr[2]) {
-	case "w" :
-		withdrawal(arr[0], arr[1], arr[3]);
-		break;
-	case "d" :
-		deposit(arr[0], arr[1], arr[3]);
-		break;
-	default:
-		break;
-	}*/
-}
 
 void ServerSock::init() {
 	struct sockaddr_in srv_addr;
