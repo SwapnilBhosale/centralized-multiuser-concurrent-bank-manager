@@ -4,8 +4,9 @@
  *  Created on: Sep 20, 2019
  *      Author: lilbase
  */
-#include <iostream>
 #include "ObserverPattern.h"
+
+#include <iostream>
 
 ObserverPattern* ObserverPattern::instance = NULL;
 

@@ -7,8 +7,7 @@
 
 #ifndef SERVER_OBSERVER_H_
 #define SERVER_OBSERVER_H_
-
-
+#include <iostream>
 class Observer {
 
 

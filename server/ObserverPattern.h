@@ -8,6 +8,7 @@
 #ifndef SERVER_OBSERVERPATTERN_H_
 #define SERVER_OBSERVERPATTERN_H_
 #include <vector>
+
 #include "Observer.h"
 
 class ObserverPattern{

@@ -29,8 +29,9 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <locale.h>
-#include "util.h"
+
 #include "ObserverPattern.h"
+#include "util.h"
 #define DEFAULT_SERVER_PORT 8080
 
 

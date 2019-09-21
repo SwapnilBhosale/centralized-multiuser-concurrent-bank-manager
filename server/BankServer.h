@@ -13,12 +13,13 @@
 #include <pthread.h>
 #include <fstream>
 #include <vector>
+
+#include "Customer.h"
+#include "ObserverPattern.h"
 #include "ServerSock.h"
 #include "Transaction.h"
-#include "Customer.h"
 #include "util.h"
-#include "Observer.h"
-#include "ObserverPattern.h"
+#include "ServerSock.h"
 
 typedef void * (*THREADFUNCPTR)(void *);
 #define THREADS_COUNT 10

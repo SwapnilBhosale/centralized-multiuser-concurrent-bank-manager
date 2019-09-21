@@ -6,6 +6,7 @@
  */
 
 #include "ServerSock.h"
+
 #include <exception>
 
 ServerSock::ServerSock() {
