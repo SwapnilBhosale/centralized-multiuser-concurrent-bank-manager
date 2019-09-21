@@ -32,7 +32,6 @@
 
 #include "ObserverPattern.h"
 #include "util.h"
-#define DEFAULT_SERVER_PORT 8080
 
 
 class ServerSock {

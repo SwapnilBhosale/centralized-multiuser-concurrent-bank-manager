@@ -22,10 +22,6 @@
 #include "ServerSock.h"
 #include "constants.h"
 
-typedef void * (*THREADFUNCPTR)(void *);
-
-
-
 
 
 class BankServer: public Observer{

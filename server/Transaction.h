@@ -12,7 +12,7 @@
 class Transaction {
 	friend class TransactionBuilder;
 private:
-	std::string name;
+	std::string timestamp;
 	int account_number;
 	char type;
 	long int amount;
@@ -37,15 +37,6 @@ public:
 		this->amount = amount;
 	}
 
-	const std::string& getName() const
-	{
-		return name;
-	}
-
-	void setName(const std::string& name)
-	{
-		this->name = name;
-	}
 
 	char getType() const
 	{
@@ -56,6 +47,30 @@ public:
 	{
 		this->type = type;
 	}
+
+	const std::string& getTimestamp() const
+	{
+		return timestamp;
+	}
+
+	void setTimestamp(const std::string& timestamp)
+	{
+		this->timestamp = timestamp;
+	}
+
+	std::string generate_transaction_payload(){
+		std::string type(1, this -> type);
+		std::string payload;
+		payload.append(this->timestamp);
+		payload.append(" ");
+		payload.append(std::to_string(this->account_number));
+		payload.append(" ");
+		payload.append(type);
+		payload.append(" ");
+		payload.append(std::to_string(this->amount));
+		payload.append("\n");
+		return payload;
+	}
 };
 
 class TransactionBuilder{
@@ -64,12 +79,12 @@ public:
 	TransactionBuilder(){
 		t.account_number = 0;
 		t.amount = 0;
-		t.name = "";
+		t.timestamp = "";
 		t.type = ' ';
 	}
 
-	TransactionBuilder set_name(std::string name){
-		t.setName(name);
+	TransactionBuilder set_timestamp(std::string name){
+		t.setTimestamp(name);
 		return *this;
 	}
 

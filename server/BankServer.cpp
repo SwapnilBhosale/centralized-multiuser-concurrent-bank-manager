@@ -55,7 +55,7 @@ void BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string 
 
 	TransactionBuilder b;
 	Transaction trans = b.set_account_number(int_acc_no)
-								.set_name(c.getName())
+								.set_timestamp(tstamp)
 								.set_transaction_type('W')
 								.set_amount(amount)
 								.build();
@@ -77,7 +77,7 @@ void BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt
 	TransactionBuilder b;
 	long amount = stol(amt);
 	Transaction trans = b.set_account_number(int_acc_no)
-									.set_name(c.getName())
+									.set_timestamp(tstamp)
 									.set_transaction_type('W')
 									.set_amount(amount)
 									.build();
@@ -121,7 +121,7 @@ void BankServer::init(){
 
 void BankServer::initialize_static_data(){
 	std::ifstream file;
-	file.open("data.txt");
+	file.open("./server/Records.txt");
 	std::string line;
 	if(file.is_open()) {
 		while(getline(file, line)){
@@ -133,8 +133,9 @@ void BankServer::initialize_static_data(){
 									.set_name(arr[1])
 									.set_balance(std::stol(arr[2]))
 									.build();
-			customer_map.insert(std::make_pair(c.getAccountNumber(), c));
+			update_customer_map(c);
 		}
+		std::cout<<"loaded static data" <<customer_map.size()<<std::endl;
 	}
 	file.close();
 }
