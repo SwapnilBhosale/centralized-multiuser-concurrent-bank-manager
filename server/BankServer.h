@@ -57,6 +57,7 @@ private:
 	void initialize_static_data();
 	void create_intrest_service();
 	void update_customer_map(Customer c);
+	pthread_mutex_t mutex_map;
 };
 
 #endif /* SERVER_H_ */

@@ -9,6 +9,7 @@
 #define SERVER_CUSTOMER_H_
 #include <math.h>
 #include "constants.h"
+#include <pthread.h>
 
 class Customer {
 	friend class CustomerBuilder;
@@ -16,6 +17,7 @@ private:
 	std::string name;
 	int account_number;
 	long double balance;
+	pthread_mutex_t mutex_balance = PTHREAD_MUTEX_INITIALIZER;
 public:
 	int getAccountNumber() const
 	{
@@ -48,15 +50,19 @@ public:
 	}
 
 	void add_money(double money) {
+		pthread_mutex_lock(&mutex_balance);
 		this -> balance = this -> balance + money;
+		pthread_mutex_unlock(&mutex_balance);
 	}
 
 	void reduce_money(double money) {
-		this -> balance = this ->balance - money ;
+		pthread_mutex_lock(&mutex_balance);
+		this -> balance = this ->balance - money;
+		pthread_mutex_unlock(&mutex_balance);
 	}
 
 	bool can_withdraw(double money) {
-		return this -> balance < money;
+		return this -> balance >= money;
 	}
 
 	double calculate_intrest() {

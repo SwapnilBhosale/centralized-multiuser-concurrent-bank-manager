@@ -29,7 +29,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <locale.h>
-
+#include "constants.h"
 #include "ObserverPattern.h"
 #include "util.h"
 

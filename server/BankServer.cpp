@@ -11,11 +11,14 @@ BankServer::BankServer() {
 	//std::cout.flush();
 	intrest_service__thread = 0;
 	serverSock = NULL;
+	mutex_map = PTHREAD_MUTEX_INITIALIZER;
 
 }
 
 void BankServer::update_customer_map(Customer c){
+	pthread_mutex_lock(&mutex_map);
 	customer_map[c.getAccountNumber()] = c;
+	pthread_mutex_unlock(&mutex_map);
 }
 
 void *BankServer::handle_intrest_service(){
