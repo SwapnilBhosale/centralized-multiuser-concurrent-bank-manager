@@ -24,9 +24,9 @@ void ObserverPattern::add_observant(Observer *ob){
 	vect.push_back(ob);
 }
 
-void ObserverPattern::notify_observants(char *data) {
+void ObserverPattern::notify_observants(char *data, int client_socket) {
 	for(Observer * ob: vect){
-		ob -> notify(data);
+		ob -> notify(data, client_socket);
 	}
 }
 

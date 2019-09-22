@@ -102,7 +102,7 @@ void ServerSock::handle_client(int client_socket) {
 		std::cout<<"received data of bytes "<<len<<std::endl;
 		std::cout<<"received Data : "<<buffer<<std::endl;
 	}
-	obj->notify_observants(buffer);
+	obj->notify_observants(buffer, client_socket);
 	free(buffer);
 	close(client_socket);
 	return;

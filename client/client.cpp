@@ -34,6 +34,11 @@ std::string Client::do_transaction(Transaction t){
 	std::string payload = t.generate_transaction_payload();
 	buf = strcpy(new char[payload.length() + 1], payload.c_str());
 	send(client_socket , buf , strlen(buf) , 0 );
+	char recv_buf[1024];
+	bzero(recv_buf,256);
+	int n = read(client_socket, &recv_buf, 1024);
+	recv_buf[n] = '\0';
+	std::cout<<recv_buf<<std::endl;
 	return buf;
 }
 
@@ -53,8 +58,7 @@ void * Client::handle_client_service(){
 											.set_transaction_type(arr[2][0])
 											.set_amount(std::stol(arr[3]))
 											.build();
-				std::string response = do_transaction(trans);
-				std::cout<<response<<std::endl;
+				do_transaction(trans);
 			}
 
 			sleep(CLIENT_SERVICE_SCHEDULE);

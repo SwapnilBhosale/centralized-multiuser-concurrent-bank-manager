@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include <fstream>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "Customer.h"
 #include "ObserverPattern.h"
@@ -32,9 +34,10 @@ public:
 
 	void static print_stats(int signal_number);
 	void create_thread(int index, ServerSock *serverSock);
-	void do_action(char * data);
-	void notify(char * data){
-		do_action(data);
+	void do_action(char * data, int clientSocket);
+
+	void notify(char * data, int clientSocket){
+		do_action(data, clientSocket);
 	}
 	static void *intrest_service_invoke_helper(void *context){
 			return ((BankServer *)context)->handle_intrest_service();
@@ -52,8 +55,8 @@ private:
 	pthread_t intrest_service__thread;
 	std::unordered_map<int, Customer> customer_map;
 	std::unordered_map< int, std::vector< Transaction > > transaction_map;
-	void withdrawal(std::string tstamp, std::string account_id, std::string amount);
-	void deposit(std::string tstamp, std::string account_id, std::string amount);
+	std::string withdrawal(std::string tstamp, std::string account_id, std::string amount);
+	std::string deposit(std::string tstamp, std::string account_id, std::string amount);
 	void initialize_static_data();
 	void create_intrest_service();
 	void update_customer_map(Customer c);

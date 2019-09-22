@@ -15,7 +15,7 @@ class ObserverPattern{
 public:
 	static ObserverPattern* get_instance();
 	void add_observant(Observer *ob);
-	void notify_observants(char *data);
+	void notify_observants(char *data, int clientSocket);
 
 private:
 	std::vector<class Observer *> vect;

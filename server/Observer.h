@@ -12,7 +12,7 @@ class Observer {
 
 
 public:
-	virtual void notify(char *data)=0;
+	virtual void notify(char *data, int clientSocket)=0;
 	virtual ~Observer() {
 		std::cout<<"destructor of observer called"<<std::endl;
 	}

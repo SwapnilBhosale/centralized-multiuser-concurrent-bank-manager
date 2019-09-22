@@ -66,7 +66,7 @@ public:
 	}
 
 	double calculate_intrest() {
-		double updated_amount = roundf(this -> balance  + ( (this ->balance * INTREST_RATE) / 100 ));
+		double updated_amount = roundf(this -> balance  + ( (this ->balance * INTREST_RATE) / 100 )) / 100;
 		return updated_amount;
 	}
 };
