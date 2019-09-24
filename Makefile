@@ -1,21 +1,30 @@
 CXX	:= g++
-OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o
+BIN_DIR = bin/
+SRC_DIR = src/
+SERVER_OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o
+CLIENT_OBJECT := Client.o
+BINARIES := Server Client 
+FLAGS := -I include/ -g -lpthread -std=c++11
 
+compile: server client
+	
+server: ${SERVER_OBJECTS}
+	${CXX} -g -o Server ${SERVER_OBJECTS} -lpthread 
+	
+client: ${CLIENT_OBJECT}
+	${CXX} -g -o Client ${CLIENT_OBJECT} -lpthread 
+	
+ObserverPattern.o: ./src/ObserverPattern.cpp
+	${CXX} ${FLAGS}  -c ./src/ObserverPattern.cpp
+	
+ServerSock.o: ./src/ServerSock.cpp
+	${CXX} ${FLAGS} -c ./src/ServerSock.cpp	
+	
+BankServer.o: ./src/BankServer.cpp
+	${CXX} ${FLAGS} -c ./src/BankServer.cpp
 
-
-compile: ${OBJECTS}
-	${CXX} -g -o Server ${OBJECTS} -lpthread 
-	
-ObserverPattern.o: ./server/ObserverPattern.cpp
-	${CXX} -g -lpthread -std=c++11 -c ./server/ObserverPattern.cpp
-	
-ServerSock.o: ./server/ServerSock.cpp
-	${CXX} -g -lpthread -std=c++11 -c ./server/ServerSock.cpp	
-	
-BankServer.o: ./server/BankServer.cpp
-	${CXX} -g -lpthread -std=c++11 -c ./server/BankServer.cpp
-
-	
+Client.o: ./src/Client.cpp
+	${CXX} ${FLAGS} -c ./src/Client.cpp
 
 clean:
-	rm -fr server/*.o bin/Server client/*.o bin/client
+	rm -fr bin/*

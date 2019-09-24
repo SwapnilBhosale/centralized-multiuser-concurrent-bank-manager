@@ -1,0 +1,30 @@
+[2019-09-23 23:51:08.207] [Thread - 4812] [info] loaded static data of size 5
+[2019-09-23 23:51:08.207] [Thread - 4812] [info] server listening on port 8080
+[2019-09-23 23:51:10.056] [Thread - 4819] [info] Successfully withdrew $16000 for customer 101
+[2019-09-23 23:51:10.057] [Thread - 4820] [info] Successfully withdrew $10000 for customer 102
+[2019-09-23 23:51:10.057] [Thread - 4821] [info] Successfully deposited $500 for customer 103
+[2019-09-23 23:51:10.057] [Thread - 4821] [info] Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:10.058] [Thread - 4822] [info] Successfully deposited $20000 for customer 104
+[2019-09-23 23:51:10.058] [Thread - 4822] [info] Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:10.059] [Thread - 4823] [info] Successfully withdrew $80000 for customer 105
+[2019-09-23 23:51:12.060] [Thread - 4818] [warning] Withdraw failed for customer name: PETER, acc_no: 101, Balance is $0.00, withdraw amount $16000.
+[2019-09-23 23:51:12.061] [Thread - 4818] [info] Successfully withdrew $10000 for customer 102
+[2019-09-23 23:51:12.063] [Thread - 4818] [info] Successfully deposited $500 for customer 103
+[2019-09-23 23:51:12.063] [Thread - 4818] [info] Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:12.064] [Thread - 4815] [info] Successfully deposited $20000 for customer 104
+[2019-09-23 23:51:12.065] [Thread - 4815] [info] Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:12.066] [Thread - 4814] [warning] Withdraw failed for customer name: DANNY, acc_no: 105, Balance is $0.00, withdraw amount $80000.
+[2019-09-23 23:51:14.067] [Thread - 4819] [warning] Withdraw failed for customer name: PETER, acc_no: 101, Balance is $0.00, withdraw amount $16000.
+[2019-09-23 23:51:14.068] [Thread - 4819] [info] Successfully withdrew $10000 for customer 102
+[2019-09-23 23:51:14.069] [Thread - 4819] [info] Successfully deposited $500 for customer 103
+[2019-09-23 23:51:14.069] [Thread - 4819] [info] Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:14.070] [Thread - 4819] [info] Successfully deposited $20000 for customer 104
+[2019-09-23 23:51:14.070] [Thread - 4819] [info] Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:14.072] [Thread - 4823] [warning] Withdraw failed for customer name: DANNY, acc_no: 105, Balance is $0.00, withdraw amount $80000.
+[2019-09-23 23:51:16.073] [Thread - 4817] [warning] Withdraw failed for customer name: PETER, acc_no: 101, Balance is $0.00, withdraw amount $16000.
+[2019-09-23 23:51:16.073] [Thread - 4817] [warning] Withdraw failed for customer name: SWAPNIL, acc_no: 102, Balance is $2000.00, withdraw amount $10000.
+[2019-09-23 23:51:16.074] [Thread - 4817] [info] Successfully deposited $500 for customer 103
+[2019-09-23 23:51:16.074] [Thread - 4817] [info] Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:16.074] [Thread - 4817] [info] Successfully deposited $20000 for customer 104
+[2019-09-23 23:51:16.074] [Thread - 4817] [info] Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:16.074] [Thread - 4817] [warning] Withdraw failed for customer name: DANNY, acc_no: 105, Balance is $0.00, withdraw amount $80000.
