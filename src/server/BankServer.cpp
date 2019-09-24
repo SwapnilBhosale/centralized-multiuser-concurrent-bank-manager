@@ -5,7 +5,7 @@
  *      Author: lilbase
  */
 
-#include "../src/BankServer.h"
+#include "BankServer.h"
 
 BankServer::BankServer() {
 	//std::cout.flush();

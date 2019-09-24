@@ -5,8 +5,8 @@
  *      Author: lilbase
  */
 
-#ifndef CONSTANTS_H_
-#define CONSTANTS_H_
+#ifndef UTILS_CONSTANTS_H_
+#define UTILS_CONSTANTS_H_
 
 
 #define THREADS_COUNT 10
@@ -17,4 +17,4 @@
 
 
 
-#endif /* CONSTANTS_H_ */
+#endif /* UTILS_CONSTANTS_H_ */

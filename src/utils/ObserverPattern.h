@@ -9,7 +9,7 @@
 #define SERVER_OBSERVERPATTERN_H_
 #include <vector>
 
-#include "../src/Observer.h"
+#include "Observer.h"
 
 class ObserverPattern{
 public:

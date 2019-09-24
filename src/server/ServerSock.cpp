@@ -5,7 +5,7 @@
  *      Author: lilbase
  */
 
-#include "../src/ServerSock.h"
+#include "ServerSock.h"
 
 #include <exception>
 

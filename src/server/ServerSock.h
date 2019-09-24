@@ -5,8 +5,8 @@
  *      Author: Swapnil Bhosale
  */
 
-#ifndef SERVERSOCK_H_
-#define SERVERSOCK_H_
+#ifndef SERVER_SERVERSOCK_H_
+#define SERVER_SERVERSOCK_H_
 
 #include <string>
 #include <iostream>
@@ -29,12 +29,12 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <locale.h>
-#include "../include/spdlog/spdlog.h"
-#include "../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../include/spdlog/sinks/rotating_file_sink.h"
-#include "constants.h"
-#include "ObserverPattern.h"
-#include "util.h"
+#include "../../include/spdlog/spdlog.h"
+#include "../../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "../utils/constants.h"
+#include "../utils/ObserverPattern.h"
+#include "../utils/util.h"
 
 
 class ServerSock {
@@ -55,4 +55,4 @@ private:
 	std::shared_ptr<spdlog::logger> _logger;
 };
 
-#endif /* SERVERSOCK_H_ */
+#endif /* SERVER_SERVERSOCK_H_ */

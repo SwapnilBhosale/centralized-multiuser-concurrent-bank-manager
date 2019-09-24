@@ -5,8 +5,8 @@
  *      Author: lilbase
  */
 
-#ifndef CLIENT_H_
-#define CLIENT_H_
+#ifndef CLIENT_CLIENT_H_
+#define CLIENT_CLIENT_H_
 #include <iostream>
 #include <fstream>
 #include <pthread.h>
@@ -15,12 +15,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
-#include "../include/spdlog/spdlog.h"
-#include "../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../include/spdlog/sinks/rotating_file_sink.h"
-#include "../src/Transaction.h"
-#include "constants.h"
-#include "util.h"
+#include "../../include/spdlog/spdlog.h"
+#include "../../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "../utils/constants.h"
+#include "../utils/Transaction.h"
+#include "../utils/util.h"
 
 class Client {
 private:
@@ -52,4 +52,4 @@ public:
 	std::string do_transaction(Transaction t);
 };
 
-#endif /* CLIENT_H_ */
+#endif /* CLIENT_CLIENT_H_ */

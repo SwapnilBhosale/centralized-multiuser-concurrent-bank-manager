@@ -1,30 +1,28 @@
-CXX	:= g++
-BIN_DIR = bin/
-SRC_DIR = src/
-SERVER_OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o
-CLIENT_OBJECT := Client.o
-BINARIES := Server Client 
-FLAGS := -I include/ -g -lpthread -std=c++11
+ 
+FLAGS = -std=c++11 -lpthread
+LDFLAGS = -lpthread
 
-compile: server client
-	
-server: ${SERVER_OBJECTS}
-	${CXX} -g -o Server ${SERVER_OBJECTS} -lpthread 
-	
-client: ${CLIENT_OBJECT}
-	${CXX} -g -o Client ${CLIENT_OBJECT} -lpthread 
-	
-ObserverPattern.o: ./src/ObserverPattern.cpp
-	${CXX} ${FLAGS}  -c ./src/ObserverPattern.cpp
-	
-ServerSock.o: ./src/ServerSock.cpp
-	${CXX} ${FLAGS} -c ./src/ServerSock.cpp	
-	
-BankServer.o: ./src/BankServer.cpp
-	${CXX} ${FLAGS} -c ./src/BankServer.cpp
+SERVER_TARGET = Server
+CLIENT_TARGET = Client
+SOURCES = $(shell echo src/server/*.cpp) $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
 
-Client.o: ./src/Client.cpp
-	${CXX} ${FLAGS} -c ./src/Client.cpp
+LOG_LIBRARY_HEADERS = include/
+
+CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
+SERVER_SRC = $(shell echo src/server/*.cpp) $(shell echo src/utils/*.cpp)
+
+OBJECTS = $(SOURCES:.cpp=.o)
+
+all: ${SERVER_TARGET} ${CLIENT_TARGET}
 
 clean:
-	rm -fr bin/*
+	rm -f $(CLIENT_SRC) ${SERVER_SRC} $(TARGET)
+
+%.o : %.cpp
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@
+
+${SERVER_TARGET}: $(SERVER_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(SERVER_SRC) -o $(SERVER_TARGET) ${LDFLAGS}
+	
+${CLIENT_TARGET}: $(CLIENT_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CLIENT_SRC) -o $(CLIENT_TARGET) ${LDFLAGS}

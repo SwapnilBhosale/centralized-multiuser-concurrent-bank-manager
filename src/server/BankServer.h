@@ -16,16 +16,15 @@
 #include <sstream>
 #include <iomanip>
 
-#include "../include/spdlog/spdlog.h"
-#include "../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../include/spdlog/sinks/rotating_file_sink.h"
-#include "../src/Customer.h"
-#include "../src/ServerSock.h"
-#include "../src/ServerSock.h"
-#include "../src/Transaction.h"
-#include "../src/constants.h"
-#include "../src/ObserverPattern.h"
-#include "../src/util.h"
+#include "../../include/spdlog/spdlog.h"
+#include "../../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "ServerSock.h"
+#include "../utils/constants.h"
+#include "../utils/ObserverPattern.h"
+#include "../utils/util.h"
+#include "../utils/Customer.h"
+#include "../utils/Transaction.h"
 
 
 class BankServer: public Observer{
