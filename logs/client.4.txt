@@ -1,0 +1,40 @@
+[2019-09-23 23:51:10.056] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:10.056] [Thread - 4825] [info] received data from server: Successfully withdrawl: $16000, for customer: 101
+[2019-09-23 23:51:10.056] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:10.057] [Thread - 4825] [info] received data from server: Successfully withdrawl: $10000, for customer: 102
+[2019-09-23 23:51:10.057] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:10.058] [Thread - 4825] [info] received data from server: Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:10.058] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:10.058] [Thread - 4825] [info] received data from server: Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:10.058] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:10.059] [Thread - 4825] [info] received data from server: Successfully withdrawl: $80000, for customer: 105
+[2019-09-23 23:51:12.059] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:12.061] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 101. Tried to withdraw $16000 but available balance is: $0.00
+[2019-09-23 23:51:12.061] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:12.062] [Thread - 4825] [info] received data from server: Successfully withdrawl: $10000, for customer: 102
+[2019-09-23 23:51:12.062] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:12.063] [Thread - 4825] [info] received data from server: Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:12.063] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:12.065] [Thread - 4825] [info] received data from server: Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:12.065] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:12.066] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 105. Tried to withdraw $80000 but available balance is: $0.00
+[2019-09-23 23:51:14.067] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:14.068] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 101. Tried to withdraw $16000 but available balance is: $0.00
+[2019-09-23 23:51:14.068] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:14.068] [Thread - 4825] [info] received data from server: Successfully withdrawl: $10000, for customer: 102
+[2019-09-23 23:51:14.068] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:14.069] [Thread - 4825] [info] received data from server: Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:14.069] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:14.071] [Thread - 4825] [info] received data from server: Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:14.071] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:14.072] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 105. Tried to withdraw $80000 but available balance is: $0.00
+[2019-09-23 23:51:16.073] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:16.073] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 101. Tried to withdraw $16000 but available balance is: $0.00
+[2019-09-23 23:51:16.073] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] received data from server: Withdrawal fail for customer: 102. Tried to withdraw $10000 but available balance is: $2000.00
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] received data from server: Successfully deposit :$500, for customer: 103
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] received data from server: Successfully deposit :$20000, for customer: 104
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] started transaction
+[2019-09-23 23:51:16.074] [Thread - 4825] [info] received data from server: Withdrawal fail

@@ -1,0 +1,2 @@
+[2019-09-24 02:25:04.140] [Thread - 7689] [info] loaded static data of size 5
+[2019-09-24 02:25:04.141] [Thread - 7689] [info] server listening on port 8080

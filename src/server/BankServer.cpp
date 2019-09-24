@@ -13,13 +13,12 @@ BankServer::BankServer() {
 	serverSock = NULL;
 	mutex_map = PTHREAD_MUTEX_INITIALIZER;
 	_logger = spdlog::get("Server");
-	me = this;
 
 }
 
 void BankServer::update_customer_map(Customer c){
 	pthread_mutex_lock(&mutex_map);
-	customer_map[c.getAccountNumber()] = c;
+	BankServer::customer_map[c.getAccountNumber()] = c;
 	pthread_mutex_unlock(&mutex_map);
 }
 
@@ -27,7 +26,7 @@ void *BankServer::handle_intrest_service(){
 	std::unordered_map<int, Customer>:: iterator itr;
 	while(true){
 		sleep(INTREST_SERVICE_SCHEDULE);
-		for (itr = customer_map.begin(); itr != customer_map.end(); itr++) {
+		for (itr = BankServer::customer_map.begin(); itr != BankServer::customer_map.end(); itr++) {
 			int act_no = itr -> first;
 			Customer c = itr -> second;
 			double updated_bal = c.calculate_intrest();
@@ -45,11 +44,11 @@ void BankServer::create_intrest_service(){
 std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string amt){
 	std::string msg;
 	int int_acc_no = stoi(acc_no);
-	if (customer_map.find(int_acc_no) == customer_map.end()){
+	if (BankServer::customer_map.find(int_acc_no) == BankServer::customer_map.end()){
 		msg = "Customer id: "+acc_no+" not present!";
 	}
 
-	Customer c  = customer_map.at(stoi(acc_no));
+	Customer c  = BankServer::customer_map.at(stoi(acc_no));
 	std::vector<Transaction> &v = transaction_map[int_acc_no];
 	long amount = stol(amt);
 	if(!c.can_withdraw(amount)) {
@@ -80,12 +79,12 @@ std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::
 std::string BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
 	std::string msg;
 	int int_acc_no = stoi(acc_no);
-	if (customer_map.find(int_acc_no) == customer_map.end()){
+	if (BankServer::customer_map.find(int_acc_no) == BankServer::customer_map.end()){
 		std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
 		msg = "Customer id: "+acc_no+" not present!";
 	} else {
-		Customer c  = customer_map.at(stoi(acc_no));
-		std::vector<Transaction> &v = transaction_map[int_acc_no];
+		Customer c  = BankServer::customer_map.at(stoi(acc_no));
+		std::vector<Transaction> &v = BankServer::transaction_map[int_acc_no];
 		TransactionBuilder b;
 		long amount = stol(amt);
 		Transaction trans = b.set_account_number(int_acc_no)
@@ -164,6 +163,10 @@ void BankServer::initialize_static_data(){
 
 
 void BankServer::print_stats(int signal_Number) {
+	for(auto it = customer_map.cbegin(); it != customer_map.cend(); ++it)
+				{
+				    std::cout<<""<<it->second;
+				}
 	double user, sys;
 	struct rusage   myusage;
 
@@ -199,8 +202,8 @@ int main(int argc, char **argv) {
 	ObserverPattern *obj = ObserverPattern::get_instance();
 	Observer *ob = &server;
 	obj -> add_observant(ob);
-	std::signal(SIGINT, server.static_myHandler);
-	signal(SIGPIPE, server.static_myHandler);
+	std::signal(SIGINT, server.print_stats);
+	signal(SIGPIPE, server.print_stats);
 	server.init();
 	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
 

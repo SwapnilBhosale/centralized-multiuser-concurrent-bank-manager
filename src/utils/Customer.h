@@ -78,9 +78,13 @@ public:
 };
 
 std::ostream& operator<< (std::ostream &out, Customer const& data) {
+	std::stringstream stream;
+		stream << std::fixed << std::setprecision(2) << data.getBalance();
+	out<<"[ ";
 	out << data.getAccountNumber() << ", ";
 	out << data.getName() << ", ";
-	out << data.getBalance();
+	out << stream.str();
+	out<<" ]";
 	return out;
 }
 

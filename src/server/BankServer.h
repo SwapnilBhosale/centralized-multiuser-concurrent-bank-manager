@@ -28,7 +28,6 @@
 
 
 class BankServer: public Observer{
-	static BankServer* me;
 public:
 	BankServer();
 	virtual ~BankServer();
@@ -45,18 +44,6 @@ public:
 		return ((BankServer *)context)->handle_intrest_service();
 	}
 
-	void print_map(){
-		for(auto it = customer_map.cbegin(); it != customer_map.cend(); ++it)
-			{
-			    _logger->info("map: {}",it->second);
-			}
-	}
-	 void static static_myHandler(int signal_number)
-	    {
-		 me -> print_map();
-		 std::bind2nd(std::mem_fun(me->print_map), signal_number);
-	    }
-
 	void  * handle_intrest_service();
 
 	pthread_t get_intrest_Service_thread(){
@@ -67,8 +54,8 @@ private:
 	ServerSock *serverSock;
 	pthread_t threads[THREADS_COUNT];
 	pthread_t intrest_service__thread;
-	std::unordered_map<int, Customer> customer_map;
-	std::unordered_map< int, std::vector< Transaction > > transaction_map;
+	inline static std::unordered_map<int, Customer> customer_map;
+	inline static std::unordered_map< int, std::vector< Transaction > > transaction_map;
 	std::string withdrawal(std::string tstamp, std::string account_id, std::string amount);
 	std::string deposit(std::string tstamp, std::string account_id, std::string amount);
 	void initialize_static_data();
