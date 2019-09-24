@@ -28,6 +28,7 @@
 
 
 class BankServer: public Observer{
+	static BankServer* me;
 public:
 	BankServer();
 	virtual ~BankServer();
@@ -43,6 +44,18 @@ public:
 	static void *intrest_service_invoke_helper(void *context){
 		return ((BankServer *)context)->handle_intrest_service();
 	}
+
+	void print_map(){
+		for(auto it = customer_map.cbegin(); it != customer_map.cend(); ++it)
+			{
+			    _logger->info("map: {}",it->second);
+			}
+	}
+	 void static static_myHandler(int signal_number)
+	    {
+		 me -> print_map();
+		 std::bind2nd(std::mem_fun(me->print_map), signal_number);
+	    }
 
 	void  * handle_intrest_service();
 

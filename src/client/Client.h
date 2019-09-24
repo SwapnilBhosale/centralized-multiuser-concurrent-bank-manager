@@ -22,6 +22,7 @@
 #include "../utils/Transaction.h"
 #include "../utils/util.h"
 
+static int count = 0;
 class Client {
 private:
 	pthread_t client_service_thread;

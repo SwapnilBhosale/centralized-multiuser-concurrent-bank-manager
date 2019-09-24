@@ -13,6 +13,7 @@ BankServer::BankServer() {
 	serverSock = NULL;
 	mutex_map = PTHREAD_MUTEX_INITIALIZER;
 	_logger = spdlog::get("Server");
+	me = this;
 
 }
 
@@ -198,8 +199,8 @@ int main(int argc, char **argv) {
 	ObserverPattern *obj = ObserverPattern::get_instance();
 	Observer *ob = &server;
 	obj -> add_observant(ob);
-	std::signal(SIGINT, server.print_stats);
-	signal(SIGPIPE, server.print_stats);
+	std::signal(SIGINT, server.static_myHandler);
+	signal(SIGPIPE, server.static_myHandler);
 	server.init();
 	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
 

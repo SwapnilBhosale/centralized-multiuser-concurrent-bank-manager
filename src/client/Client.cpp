@@ -13,7 +13,7 @@ void Client::create_client_Service() {
 }
 
 std::string Client::do_transaction(Transaction t){
-	_logger -> info("started transaction");
+	//_logger -> info("started transaction {}", //++Client::count);
 	char * buf;
 	struct sockaddr_in serv_addr;
 	if ((client_socket = socket(PF_INET, SOCK_STREAM, 0)) < 0)
@@ -39,7 +39,7 @@ std::string Client::do_transaction(Transaction t){
 	bzero(recv_buf,256);
 	int n = read(client_socket, &recv_buf, 1024);
 	recv_buf[n] = '\0';
-	_logger -> info("received data from server: {}",recv_buf);
+	//_logger -> info("received data from server: {}",recv_buf);
 	return buf;
 }
 
@@ -61,7 +61,9 @@ void * Client::handle_client_service(){
 															.build();
 				do_transaction(trans);
 			}
-
+			_logger -> info("Done transaction {}",count++);
+			if(count == 5)
+				pthread_exit(0);
 			sleep(CLIENT_SERVICE_SCHEDULE);
 		}
 		file.close();

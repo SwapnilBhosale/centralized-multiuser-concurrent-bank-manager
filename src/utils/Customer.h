@@ -9,7 +9,7 @@
 #define SERVER_CUSTOMER_H_
 #include <math.h>
 #include <pthread.h>
-
+#include "../../include/spdlog/fmt/ostr.h"
 #include "constants.h"
 
 class Customer {
@@ -70,6 +70,11 @@ public:
 		double updated_amount = roundf(this -> balance  + ( (this ->balance * INTREST_RATE) / 100 )) / 100;
 		return updated_amount;
 	}
+	template<typename OStream>
+	    friend OStream &operator<<(OStream &os, const Customer &c)
+	    {
+	        return os << "[ " << c.getAccountNumber() << ", "<<c.getName()<<", "<<c.getBalance()<<" ]";
+	    }
 };
 
 std::ostream& operator<< (std::ostream &out, Customer const& data) {
