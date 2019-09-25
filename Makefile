@@ -11,12 +11,12 @@ LOG_LIBRARY_HEADERS = include/
 CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
 SERVER_SRC = $(shell echo src/server/*.cpp) $(shell echo src/utils/*.cpp)
 
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = $(CLIENT_SRC:.cpp=.o)
 
 all: ${SERVER_TARGET} ${CLIENT_TARGET}
 
 clean:
-	rm -f $(CLIENT_SRC) ${SERVER_SRC} $(TARGET)
+	rm -f src/server/*.o src/client/*.o src/utils/*.o $(SERVER_TARGET) $(CLIENT_TARGET)
 
 %.o : %.cpp
 	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@

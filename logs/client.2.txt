@@ -1,5 +1,0 @@
-[2019-09-24 02:19:57.462] [Thread - 7559] [info] Done transaction 0
-[2019-09-24 02:19:59.470] [Thread - 7559] [info] Done transaction 1
-[2019-09-24 02:20:01.475] [Thread - 7559] [info] Done transaction 2
-[2019-09-24 02:20:03.480] [Thread - 7559] [info] Done transaction 3
-[2019-09-24 02:20:05.486] [Thread - 7559] [info] Done transaction 4
