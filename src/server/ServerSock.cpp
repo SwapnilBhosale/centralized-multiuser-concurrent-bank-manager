@@ -77,32 +77,50 @@ void * ServerSock::enter_server_loop() {
 	}
 }
 
-int get_line(int sock, char *buf, int size) {
+char* get_line(int sock, int size) {
 	ssize_t n;
 	int i = 0;
-	char c;
-	while(i<size && c != '\n'){
-		n = recv(sock, &c, 1, 0);
-		if(n > 0){
-			buf[i] = c;
-			i++;
-		}
-	}
-	buf[i]= '\0';
-	return (i);
+	char buf[size];
+
+	std::cout<<"read in get_line: "<<buf<<std::endl;
+	return buf;
 }
 
 void ServerSock::handle_client(int client_socket) {
-	char *buffer = (char *)malloc(sizeof(1024));
+	char buffer[1024];
 
 	struct timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+	long int n = recv(client_socket, &buffer, 1024, 0);
+		/*while(i<size && c != '\n'){
 
-	unsigned long len = get_line(client_socket, buffer, 1024);
-	obj->notify_observants(buffer, client_socket);
-	free(buffer);
+
+			if(n > 0){
+				//buf[i] = c;
+				//i++;
+			}
+		}*/
+	buffer[n]= '\0';
+	//buffer = get_line(client_socket, 1024);
+	//_logger -> info("before strlen {}",sizeof(buffer));
+	unsigned long len = strlen(buffer);
+	//_logger -> info("received data len: {}, data: {}",len, buffer);
+	int index = -1;
+	int prevIndex = -1;
+	for (int i = 0; i <strlen(buffer); i++){
+		if (buffer[i] == '\n'){
+			prevIndex = index;
+			index = i;
+		}
+	}
+	//_logger -> info("index is {}",prevIndex);
+	std::string str(buffer);
+	std::string payload = str.substr(prevIndex);
+	//_logger->info("************* the payoad now {}",payload);
+	obj->notify_observants((char *)payload.c_str(), client_socket);
+	//free(buffer);
 	close(client_socket);
 	return;
 }

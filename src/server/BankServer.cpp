@@ -117,11 +117,20 @@ void BankServer::do_action(char * data, int clientSocket){
 		msg = deposit(arr[0], arr[1], arr[3]);
 		break;
 	default:
+		_logger -> warn("Invalid Transaction type received: {}",arr[2]);
 		break;
 	}
-	buf = strcpy(new char[msg.length() + 1], msg.c_str());
+
+	std::string payload("HTTP/1.1 200 OK\r\n");
+	payload.append("Server: Swapnil\r\n");
+	payload.append("Content Type: text/html\r\n");
+	payload.append("Connection: close\r\n");
+	payload.append("Content-Length: ");
+	payload.append(std::to_string(msg.length()).append("\r\n"));
+	payload.append(msg);
+	buf = strcpy(new char[payload.length() + 1], payload.c_str());
 	_logger -> debug("Sending message to client: {}", msg);
-	send(clientSocket, buf, msg.length(), 0);
+	send(clientSocket, buf, payload.length(), 0);
 }
 
 BankServer::~BankServer() {

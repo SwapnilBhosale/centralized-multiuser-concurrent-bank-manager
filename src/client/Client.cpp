@@ -35,11 +35,12 @@ std::string Client::do_transaction(Transaction t){
 	std::string payload = t.generate_transaction_payload();
 	buf = strcpy(new char[payload.length() + 1], payload.c_str());
 	send(client_socket , buf , strlen(buf) , 0 );
+	_logger->info("Sent from client : {}",buf);
 	char recv_buf[1024];
-	bzero(recv_buf,256);
+	bzero(recv_buf,1024);
 	int n = read(client_socket, &recv_buf, 1024);
 	recv_buf[n] = '\0';
-	//_logger -> info("received data from server: {}",recv_buf);
+	_logger -> info("received data from server: {}",recv_buf);
 	return buf;
 }
 
