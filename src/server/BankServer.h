@@ -68,8 +68,8 @@ private:
 	std::shared_ptr<spdlog::logger> _logger;
 	Customer get_customer_by_id(int id);
 	std::string update_customer_by_id(int id, double amount, int op);
-	sem_t x,y,z,rsem,wsem;
-	int readcount=0,writecount=0,sh_var=5,bsize[5];
+	pthread_mutex_t mutex1,mwrite,mread,rallow;
+	int readcount=0,writecount=0;
 };
 
 #endif /* SERVER_H_ */

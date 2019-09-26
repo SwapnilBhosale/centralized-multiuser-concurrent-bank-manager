@@ -8,11 +8,10 @@
 #include "BankServer.h"
 
 BankServer::BankServer() {
-	sem_init(&x,0,1);
-	sem_init(&wsem,0,1);
-	sem_init(&y,0,1);
-	sem_init(&z,0,1);
-	sem_init(&rsem,0,1);
+	mutex1 = PTHREAD_MUTEX_INITIALIZER;
+	mwrite = PTHREAD_MUTEX_INITIALIZER;
+	mread = PTHREAD_MUTEX_INITIALIZER;
+	rallow = PTHREAD_MUTEX_INITIALIZER;
 	//std::cout.flush();
 	intrest_service__thread = 0;
 	serverSock = NULL;
@@ -73,38 +72,43 @@ std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::
 Customer BankServer::get_customer_by_id(int id){
 	Customer c;
 
-	sem_wait(&z);
-	sem_wait(&rsem);
-	sem_wait(&x);
+	pthread_mutex_lock(&rallow);
+	pthread_mutex_lock(&mread);
+
 	readcount++;
+
 	if(readcount==1)
-		sem_wait(&wsem);
-	sem_post(&x);
-	sem_post(&rsem);
-	sem_post(&z);
+
+		pthread_mutex_lock(&mutex1);
+
+	pthread_mutex_unlock(&mread);
+
+	pthread_mutex_unlock(&rallow);
+
 	try{
 		c =	BankServer::customer_map.at(id);
 	} catch (const std::out_of_range& oor) {
 	}
-	sem_wait(&x);
+	pthread_mutex_lock(&mread);
 	readcount--;
 	if(readcount==0)
-		sem_post(&wsem);
-	sem_post(&x);
+		pthread_mutex_unlock(&mutex1);
+	pthread_mutex_unlock(&mread);
 	return c;
 }
 
 std::string BankServer::update_customer_by_id(int id, double amount, int op) {
 
-	Customer c = get_customer_by_id(id);
+	//Customer c = get_customer_by_id(id);
 	std::string msg;
-	sem_wait(&y);
+	pthread_mutex_lock(&mwrite);
 	writecount++;
 	if(writecount==1)
-		sem_wait(&rsem);
-	sem_post(&y);
-	sem_wait(&wsem);
+		pthread_mutex_lock(&rallow);
+	pthread_mutex_unlock(&mwrite);
+	pthread_mutex_lock(&mutex1);
 
+	Customer c = BankServer::customer_map.at(id);
 	if(op == 1){
 		c.add_money(amount);
 		msg = c.get_deposit_success_msg(amount);
@@ -120,12 +124,12 @@ std::string BankServer::update_customer_by_id(int id, double amount, int op) {
 
 	}
 	BankServer::customer_map[id] = c;
-	sem_post(&wsem);
-	sem_wait(&y);
+	pthread_mutex_unlock(&mutex1);
+	pthread_mutex_lock(&mwrite);
 	writecount--;
 	if(writecount==0)
-		sem_post(&rsem);
-	sem_post(&y);
+		pthread_mutex_unlock(&rallow);
+	pthread_mutex_unlock(&mwrite);
 	return msg;
 
 }
@@ -211,9 +215,9 @@ void BankServer::initialize_static_data(){
 
 			CustomerBuilder b;
 			Customer c = b.set_account_number(std::stoi(arr[0]))
-																	.set_name(arr[1])
-																	.set_balance(std::stol(arr[2]))
-																	.build();
+																			.set_name(arr[1])
+																			.set_balance(std::stol(arr[2]))
+																			.build();
 			update_customer_map(c);
 		}
 		_logger->info("loaded static data of size {}",customer_map.size());
