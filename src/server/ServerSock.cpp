@@ -8,6 +8,7 @@
 #include "ServerSock.h"
 
 #include <exception>
+extern int count;
 
 ServerSock::ServerSock() {
 	sockfd = 0;
@@ -116,10 +117,10 @@ void ServerSock::handle_client(int client_socket) {
 		}
 	}
 	//_logger -> info("index is {}",prevIndex);
-	std::string str(buffer);
-	std::string payload = str.substr(prevIndex);
+	//std::string str(buffer);
+	//std::string payload = str(prevIndex);
 	//_logger->info("************* the payoad now {}",payload);
-	obj->notify_observants((char *)payload.c_str(), client_socket);
+	obj->notify_observants(buffer + prevIndex, client_socket);
 	//free(buffer);
 	close(client_socket);
 	return;

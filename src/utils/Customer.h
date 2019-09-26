@@ -51,15 +51,11 @@ public:
 	}
 
 	void add_money(double money) {
-		pthread_mutex_lock(&mutex_balance);
 		this -> balance = this -> balance + money;
-		pthread_mutex_unlock(&mutex_balance);
 	}
 
 	void reduce_money(double money) {
-		pthread_mutex_lock(&mutex_balance);
 		this -> balance = this ->balance - money;
-		pthread_mutex_unlock(&mutex_balance);
 	}
 
 	bool can_withdraw(double money) {
@@ -75,6 +71,33 @@ public:
 	    {
 	        return os << "[ " << c.getAccountNumber() << ", "<<c.getName()<<", "<<c.getBalance()<<" ]";
 	    }
+
+	std::string get_withdrawl_success_msg(double amount){
+		std::string msg;
+		std::stringstream stream;
+		stream << std::fixed << std::setprecision(2) <<  amount;
+		msg = "Successfully withdrawl: $"+stream.str()+", for customer: "+std::to_string(this->account_number);
+		return msg;
+	}
+
+	std::string get_withdraw_fail_msg(double amount) {
+		std::string msg;
+		std::stringstream stream;
+		std::stringstream stream1;
+		stream << std::fixed << std::setprecision(2) <<  this -> balance;
+		stream1 << std::fixed << std::setprecision(2) <<  amount;
+		msg = "Withdrawal fail for customer: "+std::to_string(this->account_number)+". Tried to withdraw $"+stream1.str()+
+				" but available balance is: $"+stream.str();
+		return msg;
+	}
+
+	std::string get_deposit_success_msg(double amount){
+			std::string msg;
+			std::stringstream stream;
+			stream << std::fixed << std::setprecision(2) <<  amount;
+			msg = "Successfully deposit :$"+stream.str()+", for customer: "+std::to_string(this->account_number);
+			return msg;
+		}
 };
 
 std::ostream& operator<< (std::ostream &out, Customer const& data) {

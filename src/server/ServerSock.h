@@ -39,6 +39,7 @@
 
 class ServerSock {
 public:
+
 	ServerSock();
 	virtual ~ServerSock();
 	void init();

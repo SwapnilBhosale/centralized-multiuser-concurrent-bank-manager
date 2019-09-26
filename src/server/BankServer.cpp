@@ -8,6 +8,11 @@
 #include "BankServer.h"
 
 BankServer::BankServer() {
+	sem_init(&x,0,1);
+	sem_init(&wsem,0,1);
+	sem_init(&y,0,1);
+	sem_init(&z,0,1);
+	sem_init(&rsem,0,1);
 	//std::cout.flush();
 	intrest_service__thread = 0;
 	serverSock = NULL;
@@ -48,34 +53,82 @@ std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::
 		msg = "Customer id: "+acc_no+" not present!";
 	}
 
-	Customer c  = BankServer::customer_map.at(stoi(acc_no));
-	std::vector<Transaction> &v = transaction_map[int_acc_no];
-	long amount = stol(amt);
-	if(!c.can_withdraw(amount)) {
-		std::stringstream stream;
-		stream << std::fixed << std::setprecision(2) << c.getBalance();
-		msg = "Withdrawal fail for customer: "+acc_no+". Tried to withdraw $"+amt+
-				" but available balance is: $"+stream.str();
-		_logger -> warn("Withdraw failed for customer name: {}, acc_no: {}, Balance is ${}, "
-				"withdraw amount ${}.", c.getName(), acc_no, stream.str(), amt);
+	Customer c  = get_customer_by_id(stoi(acc_no));
+	//std::vector<Transaction> &v = transaction_map[int_acc_no];
+	double amount = stod(amt);
+	/*TransactionBuilder b;
+	Transaction trans = b.set_account_number(int_acc_no)
+																.set_timestamp(tstamp)
+																.set_transaction_type('W')
+																.set_amount(amount)
+																.build();*/
+	//v.push_back(trans);
+	msg = update_customer_by_id(stoi(acc_no), amount, 0);
 
-	}else{
-		TransactionBuilder b;
-		Transaction trans = b.set_account_number(int_acc_no)
-														.set_timestamp(tstamp)
-														.set_transaction_type('W')
-														.set_amount(amount)
-														.build();
-		v.push_back(trans);
-		c.reduce_money(amount);
-		update_customer_map(c);
-		msg = "Successfully withdrawl: $"+amt+", for customer: "+acc_no;
-		_logger -> info("Successfully withdrew ${} for customer {}", amt, acc_no);
-	}
-
+	_logger -> info("{}",msg);
 	return msg;
 }
 
+
+Customer BankServer::get_customer_by_id(int id){
+	Customer c;
+
+	sem_wait(&z);
+	sem_wait(&rsem);
+	sem_wait(&x);
+	readcount++;
+	if(readcount==1)
+		sem_wait(&wsem);
+	sem_post(&x);
+	sem_post(&rsem);
+	sem_post(&z);
+	try{
+		c =	BankServer::customer_map.at(id);
+	} catch (const std::out_of_range& oor) {
+	}
+	sem_wait(&x);
+	readcount--;
+	if(readcount==0)
+		sem_post(&wsem);
+	sem_post(&x);
+	return c;
+}
+
+std::string BankServer::update_customer_by_id(int id, double amount, int op) {
+
+	Customer c = get_customer_by_id(id);
+	std::string msg;
+	sem_wait(&y);
+	writecount++;
+	if(writecount==1)
+		sem_wait(&rsem);
+	sem_post(&y);
+	sem_wait(&wsem);
+
+	if(op == 1){
+		c.add_money(amount);
+		msg = c.get_deposit_success_msg(amount);
+	}
+	else {
+		if(c.can_withdraw(amount)){
+			c.reduce_money(amount);
+			msg = c.get_withdrawl_success_msg(amount);
+
+		}else{
+			msg = c.get_withdraw_fail_msg(amount);
+		}
+
+	}
+	BankServer::customer_map[id] = c;
+	sem_post(&wsem);
+	sem_wait(&y);
+	writecount--;
+	if(writecount==0)
+		sem_post(&rsem);
+	sem_post(&y);
+	return msg;
+
+}
 std::string BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
 	std::string msg;
 	int int_acc_no = stoi(acc_no);
@@ -83,30 +136,29 @@ std::string BankServer::deposit(std::string tstamp, std::string acc_no, std::str
 		std::cout<<"Cutomer id : "<<int_acc_no<<" not present!"<<std::endl;
 		msg = "Customer id: "+acc_no+" not present!";
 	} else {
-		Customer c  = BankServer::customer_map.at(stoi(acc_no));
-		std::vector<Transaction> &v = BankServer::transaction_map[int_acc_no];
-		TransactionBuilder b;
-		long amount = stol(amt);
+
+		double amount = stod(amt);
+		//std::vector<Transaction> &v = BankServer::transaction_map[int_acc_no];
+		/*TransactionBuilder b;
+
 		Transaction trans = b.set_account_number(int_acc_no)
 															.set_timestamp(tstamp)
 															.set_transaction_type('W')
 															.set_amount(amount)
-															.build();
-		v.push_back(trans);
-		c.add_money(amount);
-		update_customer_map(c);
-		msg = "Successfully deposit :$"+amt+", for customer: "+acc_no;
-		_logger -> info("Successfully deposited ${} for customer {}", amt, acc_no);
+															.build();*/
+
+		msg = update_customer_by_id(int_acc_no, amount, 1);
 	}
 	_logger -> info(msg);
 	return msg;
 }
 
 void BankServer::do_action(char * data, int clientSocket){
+	count += 1;
 	char * buf;
 	std::string msg;
 	std::string arr[4];
-	splitString(arr, data);
+	splitString(arr, std::string(data));
 
 	char choice = arr[2][0];
 	switch(toupper(choice)) {
@@ -159,9 +211,9 @@ void BankServer::initialize_static_data(){
 
 			CustomerBuilder b;
 			Customer c = b.set_account_number(std::stoi(arr[0]))
-															.set_name(arr[1])
-															.set_balance(std::stol(arr[2]))
-															.build();
+																	.set_name(arr[1])
+																	.set_balance(std::stol(arr[2]))
+																	.build();
 			update_customer_map(c);
 		}
 		_logger->info("loaded static data of size {}",customer_map.size());
@@ -173,9 +225,10 @@ void BankServer::initialize_static_data(){
 
 void BankServer::print_stats(int signal_Number) {
 	for(auto it = customer_map.cbegin(); it != customer_map.cend(); ++it)
-				{
-				    std::cout<<""<<it->second;
-				}
+	{
+		std::cout<<""<<it->second;
+	}
+	std::cout<<"Total request received : "<<count<<std::endl;
 	double user, sys;
 	struct rusage   myusage;
 
