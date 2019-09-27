@@ -8,15 +8,22 @@
 
 #include "Client.h"
 
-void Client::create_client_Service() {
-	pthread_create(&client_service_thread, NULL, &Client::client_service_invoke_helper, this);
+void Client::create_client_Service(long int concur) {
+	for(int i=0;i<concur;i++){
+		int res = pthread_create(&client_service_thread[i], NULL, &Client::client_service_invoke_helper, this);
+		if(res  != 0){
+			perror("error");
+			this -> _logger -> info("error in creating thread {}",i);
+		}
+	}
 }
 
 std::string Client::do_transaction(Transaction t){
 	//_logger -> info("started transaction {}", //++Client::count);
 	char * buf;
 	struct sockaddr_in serv_addr;
-	if ((client_socket = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+	int sock;
+	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		perror("\n Socket creation error \n");
 	}
@@ -28,29 +35,30 @@ std::string Client::do_transaction(Transaction t){
 		perror("\nInvalid address/ Address not supported \n");
 	}
 
-	if (connect(client_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		perror("\nConnection Failed \n");
 	}
 	std::string payload = t.generate_transaction_payload();
 	buf = strcpy(new char[payload.length() + 1], payload.c_str());
-	send(client_socket , buf , strlen(buf) , 0 );
-	_logger->info("Sent from client : {}",buf);
+	send(sock , buf , strlen(buf) , 0 );
+	//_logger->info("Sent from client : {}",buf);
 	char recv_buf[1024];
 	bzero(recv_buf,1024);
-	int n = read(client_socket, &recv_buf, 1024);
+	int n = read(sock, &recv_buf, 1024);
 	recv_buf[n] = '\0';
-	_logger -> info("received data from server: {}",recv_buf);
+	//s_logger -> info("received data from server: {}",recv_buf);
+	close(sock);
 	return buf;
 }
 
 void * Client::handle_client_service(){
-	while(1){
 		std::ifstream file;
 		file.open("./src/Transactions.txt");
 		std::string line;
 		if(file.is_open()) {
 			while(getline(file, line)){
+				//_logger -> info("read line {}",line);
 				std::string arr[4];
 				splitString(arr, line);
 				int int_acc_no = std::stoi(arr[1]);
@@ -62,14 +70,14 @@ void * Client::handle_client_service(){
 															.build();
 				do_transaction(trans);
 			}
-			_logger -> info("Done transaction {}",count++);
-			if(count == 5)
-				pthread_exit(0);
-			sleep(CLIENT_SERVICE_SCHEDULE);
+			count++;
+			//_logger -> info("Done transaction {}",count++);
+			thread_status[++count1] = 1;
+			//if(count == 5)
+				//pthread_exit(0);
+			//sleep(CLIENT_SERVICE_SCHEDULE);
 		}
 		file.close();
-	}
-	return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -83,8 +91,57 @@ int main(int argc, char **argv) {
 	Client client;
 	//std::signal(SIGINT, server.print_stats);
 	//signal(SIGPIPE, server.print_stats);
-	client.create_client_Service();
-	(void) pthread_join(client.getClientServiceThread(), NULL);//for (;;)
+
+	//pthread_join(client.getClientServiceThread(), NULL);
+	long int concurrency = CONCURRENCY;
+	long int request_count = REQUESTS;
+	timestamp_t start_time = get_timestamp();
+	while (true){
+
+		combined_logger -> info("********** Starting thread again {}",concurrency);
+		client.create_client_Service(concurrency);
+		combined_logger -> info("********** after Starting thread");
+		/*for(int j=0;j<concurrency;j++){
+			pthread_join(client.client_service_thread[j], NULL);
+		}*/
+		while (true){
+			//combined_logger -> info("in while loop");
+
+			bool can_stop = true;
+			for(int j=0;j<concurrency;j++){
+				if(!client.thread_status[j]){
+					can_stop = false;
+				}
+			}
+			if(can_stop){
+				memset(&client.thread_status, 0, THREAD_MAX);
+				count1 = -1;
+				//client.thread_status = {0};
+				combined_logger -> info("concurrency {} all stopped",concurrency);
+				break;
+			}
+
+		}
+		request_count -= concurrency;
+		int mod = request_count % concurrency;
+		if( !mod==0 && request_count < concurrency){
+			concurrency = mod;
+		}
+		combined_logger -> info("********** Request remainins : {}",request_count);
+		if(request_count == 0)
+			break;
+
+
+	}
+	timestamp_t end_time = get_timestamp();
+	double time_taken = (end_time - start_time) / 1000000.0L;
+	double request_per_sec = count/time_taken;
+	double time_per_req = CONCURRENCY * time_taken * 1000 / count;
+	double time_per_req_conc = time_taken * 1000 / count;
+	combined_logger -> info("total requests/s: {}",request_per_sec);
+	combined_logger -> info("total time/request: {}",time_per_req);
+	combined_logger -> info("total time/request(mean, across all concurrent requests): {}",time_per_req_conc);
+
 	//  pause();
 
 }

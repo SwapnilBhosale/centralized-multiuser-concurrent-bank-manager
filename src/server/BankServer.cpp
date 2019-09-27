@@ -52,8 +52,6 @@ std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::
 		msg = "Customer id: "+acc_no+" not present!";
 	}
 
-	Customer c  = get_customer_by_id(stoi(acc_no));
-	//std::vector<Transaction> &v = transaction_map[int_acc_no];
 	double amount = stod(amt);
 	/*TransactionBuilder b;
 	Transaction trans = b.set_account_number(int_acc_no)
@@ -177,16 +175,16 @@ void BankServer::do_action(char * data, int clientSocket){
 		break;
 	}
 
-	std::string payload("HTTP/1.1 200 OK\r\n");
+	/*std::string payload("HTTP/1.1 200 OK\r\n");
 	payload.append("Server: Swapnil\r\n");
 	payload.append("Content Type: text/html\r\n");
 	payload.append("Connection: close\r\n");
 	payload.append("Content-Length: ");
-	payload.append(std::to_string(msg.length()).append("\r\n"));
-	payload.append(msg);
-	buf = strcpy(new char[payload.length() + 1], payload.c_str());
+	payload.append(std::to_string(msg.length()).append("\r\n"));*/
+	//payload.append(msg);
+	buf = strcpy(new char[msg.length() + 1], msg.c_str());
 	_logger -> debug("Sending message to client: {}", msg);
-	send(clientSocket, buf, payload.length(), 0);
+	send(clientSocket, buf, msg.length(), 0);
 }
 
 BankServer::~BankServer() {

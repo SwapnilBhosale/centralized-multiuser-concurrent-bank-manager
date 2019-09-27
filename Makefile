@@ -1,5 +1,5 @@
  
-FLAGS = -std=c++11 -lpthread
+FLAGS = -std=c++11 -lpthread -Wall -Wextra -pedantic
 LDFLAGS = -lpthread
 
 SERVER_TARGET = Server

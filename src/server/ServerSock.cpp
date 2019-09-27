@@ -107,7 +107,7 @@ void ServerSock::handle_client(int client_socket) {
 	//buffer = get_line(client_socket, 1024);
 	//_logger -> info("before strlen {}",sizeof(buffer));
 	unsigned long len = strlen(buffer);
-	//_logger -> info("received data len: {}, data: {}",len, buffer);
+	_logger -> info("received data len: {}, data: {}",len, buffer);
 	int index = -1;
 	int prevIndex = -1;
 	for (int i = 0; i <strlen(buffer); i++){
@@ -120,7 +120,7 @@ void ServerSock::handle_client(int client_socket) {
 	//std::string str(buffer);
 	//std::string payload = str(prevIndex);
 	//_logger->info("************* the payoad now {}",payload);
-	obj->notify_observants(buffer + prevIndex, client_socket);
+	obj->notify_observants(buffer, client_socket);
 	//free(buffer);
 	close(client_socket);
 	return;
