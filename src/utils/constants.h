@@ -17,7 +17,10 @@
 #define CONCURRENCY 10
 #define REQUESTS 20000
 #define THREAD_MAX 5000
-
+#define HOST "127.0.0.1"
+#define PORT 8080
+#define FILE "./src/Transactions.txt"
+#define SERVER_FILE "./src/Records.txt"
 
 
 #endif /* UTILS_CONSTANTS_H_ */

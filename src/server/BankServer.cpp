@@ -191,20 +191,20 @@ BankServer::~BankServer() {
 	delete serverSock;
 }
 
-void BankServer::init(){
-	initialize_static_data();
-	serverSock = new ServerSock();
+void BankServer::init(std::string serverFile, int port, int threadCount){
+	initialize_static_data(serverFile);
+	serverSock = new ServerSock(port);
 	serverSock -> init();
 	create_intrest_service();
-	for (int i = 0; i < THREADS_COUNT; ++i) {
+	for (int i = 0; i < threadCount; ++i) {
 		create_thread(i, serverSock);
 	}
 }
 
 
-void BankServer::initialize_static_data(){
+void BankServer::initialize_static_data(std::string ipFile){
 	std::ifstream file;
-	file.open("./src/Records.txt");
+	file.open(ipFile);
 	std::string line;
 	if(file.is_open()) {
 		while(getline(file, line)){
@@ -251,8 +251,52 @@ void BankServer::create_thread(int index, ServerSock *serverSock) {
 	pthread_create(&threads[index], NULL, &ServerSock::thread_pool_loop_helper, serverSock);
 }
 
+static void usage(const char *progname)
+{
+    fprintf(stderr, "Usage: %s [options] \n", progname);
+/* 80 column ruler:  ********************************************************************************
+ */
+    fprintf(stderr, "Options are:\n");
+    fprintf(stderr, "    -p port  	    Thread count, default is 100\n");
+    fprintf(stderr, "    -p port  	    Default server port to listen is 8080\n");
+    fprintf(stderr, "    -f file         Address of startup data file for customers, default is './src/Records.txt'\n");
+    exit(EINVAL);
+}
 
 int main(int argc, char **argv) {
+
+		extern char *optarg;
+		char c;
+		int p = DEFAULT_SERVER_PORT;
+		int thread_count = THREADS_COUNT;
+		std::string file(SERVER_FILE);
+
+
+		while ((c = getopt (argc, argv, ":f:p:t:")) != -1) {
+			switch(c){
+			case 'p':
+				p = atoi(optarg);
+				if(p <= 0)
+					usage(argv[0]);
+				break;
+			case 'f':
+				file = optarg;
+				if(file.length() == 0)
+					usage(argv[0]);
+				break;
+			case 't':
+				thread_count = atoi(optarg);
+				if(p <= 0)
+					usage(argv[0]);
+				break;
+			case ':':
+				usage(argv[0]);
+				break;
+			case '?':
+				usage(argv[1]);
+				break;
+			}
+		}
 
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -268,10 +312,10 @@ int main(int argc, char **argv) {
 	obj -> add_observant(ob);
 	std::signal(SIGINT, server.print_stats);
 	signal(SIGPIPE, server.print_stats);
-	server.init();
+	server.init(file, p, thread_count);
 	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
 
 	//for (;;)
-	//  pause();
+	//  pause();*/
 
 }

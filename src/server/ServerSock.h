@@ -40,7 +40,7 @@
 class ServerSock {
 public:
 
-	ServerSock();
+	ServerSock(int port);
 	virtual ~ServerSock();
 	void init();
 	void * enter_server_loop();

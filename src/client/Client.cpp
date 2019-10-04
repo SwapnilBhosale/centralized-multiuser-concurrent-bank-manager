@@ -28,9 +28,9 @@ std::string Client::do_transaction(Transaction t){
 		perror("\n Socket creation error \n");
 	}
 	serv_addr.sin_family = PF_INET;
-	serv_addr.sin_port = htons(DEFAULT_SERVER_PORT);
+	serv_addr.sin_port = htons(this->port);
 	// Convert IPv4 and IPv6 addresses from text to binary form
-	if(inet_pton(PF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)
+	if(inet_pton(PF_INET, this->host.c_str(), &serv_addr.sin_addr)<=0)
 	{
 		perror("\nInvalid address/ Address not supported \n");
 	}
@@ -54,7 +54,7 @@ std::string Client::do_transaction(Transaction t){
 
 void * Client::handle_client_service(){
 		std::ifstream file;
-		file.open("./src/Transactions.txt");
+		file.open(this->file);
 		std::string line;
 		if(file.is_open()) {
 			while(getline(file, line)){
@@ -80,7 +80,65 @@ void * Client::handle_client_service(){
 		file.close();
 }
 
+static void usage(const char *progname)
+{
+    fprintf(stderr, "Usage: %s [options] \n", progname);
+    fprintf(stderr, "Options are:\n");
+    fprintf(stderr, "    -n requests     Number of requests to perform.Default is 20000\n");
+    fprintf(stderr, "    -c concurrency  Number of multiple requests to make. Default is 30\n");
+    fprintf(stderr, "    -h host  	    Host to connect to default is localhost\n");
+    fprintf(stderr, "    -p port  	    Port to connect to default is 8080\n");
+    fprintf(stderr, "    -f file         Address Transaction file address default is './src/Transactions.txt'\n");
+    exit(EINVAL);
+}
+
+
 int main(int argc, char **argv) {
+	extern char *optarg;
+	char c;
+	int concurrency = CONCURRENCY;
+	int n = REQUESTS;
+	int p = DEFAULT_SERVER_PORT;
+	std::string host(HOST);
+	std::string file(FILE);
+
+
+	while ((c = getopt (argc, argv, ":n:c:h:f:p:")) != -1) {
+		switch(c){
+		case 'n':
+			n = atoi(optarg);
+			if(n<=0)
+				usage(argv[0]);
+			break;
+		case 'c':
+			concurrency = atoi(optarg);
+			if(concurrency <= 0 || concurrency > THREAD_MAX)
+				usage(argv[0]);
+			break;
+		case 'h':
+			host = optarg;
+			if(host.length() == 0)
+				usage(argv[0]);
+			break;
+		case 'p':
+			p = atoi(optarg);
+			if(p <= 0)
+				usage(argv[0]);
+			break;
+		case 'f':
+			file = optarg;
+			if(file.length() == 0)
+				usage(argv[0]);
+			break;
+		case ':':
+			usage(argv[0]);
+			break;
+		case '?':
+			usage(argv[1]);
+			break;
+		}
+	}
+	std::cout<<"n: "<<n<<" c: "<<concurrency<<" h: "<<host<<" p: "<<p<<" f:"<<file<<std::endl;
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>("./logs/client.txt",1024 * 1024 * 5, 10, true));
@@ -88,22 +146,14 @@ int main(int argc, char **argv) {
 	combined_logger -> set_level(spdlog::level::info);
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);
-	Client client;
-	//std::signal(SIGINT, server.print_stats);
-	//signal(SIGPIPE, server.print_stats);
-
-	//pthread_join(client.getClientServiceThread(), NULL);
-	long int concurrency = CONCURRENCY;
-	long int request_count = REQUESTS;
+	long int request_count = n;
+	Client client(host, file, concurrency, p);
 	timestamp_t start_time = get_timestamp();
 	while (true){
 
 		combined_logger -> info("********** Starting thread again {}",concurrency);
 		client.create_client_Service(concurrency);
 		combined_logger -> info("********** after Starting thread");
-		/*for(int j=0;j<concurrency;j++){
-			pthread_join(client.client_service_thread[j], NULL);
-		}*/
 		while (true){
 			//combined_logger -> info("in while loop");
 
@@ -142,7 +192,7 @@ int main(int argc, char **argv) {
 	combined_logger -> info("total time/request: {}",time_per_req);
 	combined_logger -> info("total time/request(mean, across all concurrent requests): {}",time_per_req_conc);
 
-	//  pause();
+	//  pause();*/
 
 }
 

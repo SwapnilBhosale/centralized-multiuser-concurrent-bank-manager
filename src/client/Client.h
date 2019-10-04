@@ -22,6 +22,8 @@
 #include "../utils/Transaction.h"
 #include "../utils/util.h"
 #include <sys/time.h>
+#include <getopt.h>
+#include <stdlib.h>
 typedef unsigned long long timestamp_t;
 
 static timestamp_t
@@ -44,14 +46,23 @@ static int count = 0;
 class Client {
 private:
 
-
+	std::string host;
+	std::string file;
+	int concurrency;
+	int port;
 	int client_socket;
 	std::shared_ptr<spdlog::logger> _logger;
 public:
 	pthread_t client_service_thread[THREAD_MAX];
-	Client(){
+
+	Client(std::string host, std::string file, int c, int port){
 		client_socket = 0;
 		_logger = spdlog::get("Server");
+		this -> concurrency = c;
+		this -> port = port;
+		this -> host = host;
+		this -> file = file;
+
 	}
 	int thread_status[THREAD_MAX] = {0};
 	static void *client_service_invoke_helper(void *context){

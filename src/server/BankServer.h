@@ -15,7 +15,12 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <string>
 #include <semaphore.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <stdlib.h>
 
 #include "../../include/spdlog/spdlog.h"
 #include "../../include/spdlog/sinks/stdout_color_sinks.h"
@@ -33,7 +38,7 @@ class BankServer: public Observer{
 public:
 	BankServer();
 	virtual ~BankServer();
-	void init();
+	void init(std::string serverFile, int port, int threadCount);
 
 	void static print_stats(int signal_number);
 	void create_thread(int index, ServerSock *serverSock);
@@ -61,7 +66,7 @@ private:
 	inline static std::unordered_map< int, std::vector< Transaction > > transaction_map;
 	std::string withdrawal(std::string tstamp, std::string account_id, std::string amount);
 	std::string deposit(std::string tstamp, std::string account_id, std::string amount);
-	void initialize_static_data();
+	void initialize_static_data(std::string ipFile);
 	void create_intrest_service();
 	void update_customer_map(Customer c);
 	pthread_mutex_t mutex_map;

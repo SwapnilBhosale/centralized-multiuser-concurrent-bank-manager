@@ -10,9 +10,9 @@
 #include <exception>
 extern int count;
 
-ServerSock::ServerSock() {
+ServerSock::ServerSock(int port) {
 	sockfd = 0;
-	port = DEFAULT_SERVER_PORT;
+	this -> port = port;
 	mlock = PTHREAD_MUTEX_INITIALIZER;
 	obj = ObserverPattern::get_instance();
 	_logger = spdlog::get("Server");
@@ -118,7 +118,7 @@ void ServerSock::handle_client(int client_socket) {
 	}
 	//_logger -> info("index is {}",prevIndex);
 	//std::string str(buffer);
-	//std::string payload = str(prevIndex);
+	//std::string payload = str.substr(prevIndex);
 	//_logger->info("************* the payoad now {}",payload);
 	obj->notify_observants(buffer, client_socket);
 	//free(buffer);
