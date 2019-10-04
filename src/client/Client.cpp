@@ -47,7 +47,7 @@ std::string Client::do_transaction(Transaction t){
 	bzero(recv_buf,1024);
 	int n = read(sock, &recv_buf, 1024);
 	recv_buf[n] = '\0';
-	//s_logger -> info("received data from server: {}",recv_buf);
+	_logger -> info("received data from server: {}",recv_buf);
 	close(sock);
 	return buf;
 }
@@ -84,11 +84,11 @@ static void usage(const char *progname)
 {
     fprintf(stderr, "Usage: %s [options] \n", progname);
     fprintf(stderr, "Options are:\n");
-    fprintf(stderr, "    -n requests     Number of requests to perform.Default is 20000\n");
-    fprintf(stderr, "    -c concurrency  Number of multiple requests to make. Default is 30\n");
-    fprintf(stderr, "    -h host  	    Host to connect to default is localhost\n");
-    fprintf(stderr, "    -p port  	    Port to connect to default is 8080\n");
-    fprintf(stderr, "    -f file         Address Transaction file address default is './src/Transactions.txt'\n");
+    fprintf(stderr, "    -n requests     Number of requests to perform, Default is 20000\n");
+    fprintf(stderr, "    -c concurrency  Number of concurrent requests to make, Default is 30\n");
+    fprintf(stderr, "    -h host  	    Host to connect to, Default is 127.0.0.1\n");
+    fprintf(stderr, "    -p port  	    Port to connect to, Default is 8080\n");
+    fprintf(stderr, "    -f file         Address Transaction file address, Default is './src/Transactions.txt'\n");
     exit(EINVAL);
 }
 
@@ -151,9 +151,9 @@ int main(int argc, char **argv) {
 	timestamp_t start_time = get_timestamp();
 	while (true){
 
-		combined_logger -> info("********** Starting thread again {}",concurrency);
+		//combined_logger -> info("********** Starting thread again {}",concurrency);
 		client.create_client_Service(concurrency);
-		combined_logger -> info("********** after Starting thread");
+		//combined_logger -> info("********** after Starting thread");
 		while (true){
 			//combined_logger -> info("in while loop");
 
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
 				memset(&client.thread_status, 0, THREAD_MAX);
 				count1 = -1;
 				//client.thread_status = {0};
-				combined_logger -> info("concurrency {} all stopped",concurrency);
+				//combined_logger -> info("concurrency {} all stopped",concurrency);
 				break;
 			}
 
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
 		if( !mod==0 && request_count < concurrency){
 			concurrency = mod;
 		}
-		combined_logger -> info("********** Request remainins : {}",request_count);
+		//combined_logger -> info("********** Request remainins : {}",request_count);
 		if(request_count == 0)
 			break;
 

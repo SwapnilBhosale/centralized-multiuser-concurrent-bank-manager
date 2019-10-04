@@ -226,10 +226,14 @@ void BankServer::initialize_static_data(std::string ipFile){
 
 
 void BankServer::print_stats(int signal_Number) {
+	std::cout<<std::endl<<"*********************************************"<<std::endl;
+	std::cout<<"Current state of the Customer records!"<<std::endl<<std::endl;
 	for(auto it = customer_map.cbegin(); it != customer_map.cend(); ++it)
 	{
-		std::cout<<""<<it->second;
+
+		std::cout<<it->second<<std::endl;
 	}
+	std::cout<<std::endl<<"*********************************************"<<std::endl;
 	std::cout<<"Total request received : "<<count<<std::endl;
 	double user, sys;
 	struct rusage   myusage;
@@ -257,9 +261,9 @@ static void usage(const char *progname)
 /* 80 column ruler:  ********************************************************************************
  */
     fprintf(stderr, "Options are:\n");
-    fprintf(stderr, "    -p port  	    Thread count, default is 100\n");
-    fprintf(stderr, "    -p port  	    Default server port to listen is 8080\n");
-    fprintf(stderr, "    -f file         Address of startup data file for customers, default is './src/Records.txt'\n");
+    fprintf(stderr, "    -t port  	    Thread pool count, Default is 100\n");
+    fprintf(stderr, "    -p port  	    Server port to listen, Default is 8080\n");
+    fprintf(stderr, "    -f file         Address of startup data file for customers, Default is './src/Records.txt'\n");
     exit(EINVAL);
 }
 
@@ -293,7 +297,7 @@ int main(int argc, char **argv) {
 				usage(argv[0]);
 				break;
 			case '?':
-				usage(argv[1]);
+				usage(argv[0]);
 				break;
 			}
 		}

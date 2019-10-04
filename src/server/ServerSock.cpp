@@ -78,14 +78,6 @@ void * ServerSock::enter_server_loop() {
 	}
 }
 
-char* get_line(int sock, int size) {
-	ssize_t n;
-	int i = 0;
-	char buf[size];
-
-	std::cout<<"read in get_line: "<<buf<<std::endl;
-	return buf;
-}
 
 void ServerSock::handle_client(int client_socket) {
 	char buffer[1024];
