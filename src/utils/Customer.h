@@ -9,7 +9,7 @@
 #define SERVER_CUSTOMER_H_
 #include <math.h>
 #include <pthread.h>
-#include "../../include/spdlog/fmt/ostr.h"
+#include "../include/spdlog/fmt/ostr.h"
 #include "constants.h"
 
 class Customer {

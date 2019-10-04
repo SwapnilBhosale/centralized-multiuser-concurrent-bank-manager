@@ -29,9 +29,9 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <locale.h>
-#include "../../include/spdlog/spdlog.h"
-#include "../../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "../include/spdlog/spdlog.h"
+#include "../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../include/spdlog/sinks/rotating_file_sink.h"
 #include "../utils/constants.h"
 #include "../utils/ObserverPattern.h"
 #include "../utils/util.h"

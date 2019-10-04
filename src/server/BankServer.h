@@ -22,9 +22,9 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-#include "../../include/spdlog/spdlog.h"
-#include "../../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "../include/spdlog/spdlog.h"
+#include "../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../include/spdlog/sinks/rotating_file_sink.h"
 #include "ServerSock.h"
 #include "../utils/constants.h"
 #include "../utils/ObserverPattern.h"

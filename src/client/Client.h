@@ -15,9 +15,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
-#include "../../include/spdlog/spdlog.h"
-#include "../../include/spdlog/sinks/stdout_color_sinks.h"
-#include "../../include/spdlog/sinks/rotating_file_sink.h"
+#include "../include/spdlog/spdlog.h"
+#include "../include/spdlog/sinks/stdout_color_sinks.h"
+#include "../include/spdlog/sinks/rotating_file_sink.h"
 #include "../utils/constants.h"
 #include "../utils/Transaction.h"
 #include "../utils/util.h"
