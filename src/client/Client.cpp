@@ -188,9 +188,9 @@ int main(int argc, char **argv) {
 	double request_per_sec = count/time_taken;
 	double time_per_req = CONCURRENCY * time_taken * 1000 / count;
 	double time_per_req_conc = time_taken * 1000 / count;
-	combined_logger -> info("total requests/s: {}",request_per_sec);
-	combined_logger -> info("total time/request: {}",time_per_req);
-	combined_logger -> info("total time/request(mean, across all concurrent requests): {}",time_per_req_conc);
+	combined_logger -> info("total requests/s: {} [#/sec] (mean)",request_per_sec);
+	combined_logger -> info("total time/request: {} [ms] (mean)",time_per_req);
+	combined_logger -> info("total time/reques: {} [ms](mean, across all concurrent requests)",time_per_req_conc);
 
 	//  pause();*/
 
