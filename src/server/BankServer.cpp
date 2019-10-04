@@ -261,9 +261,9 @@ static void usage(const char *progname)
 /* 80 column ruler:  ********************************************************************************
  */
     fprintf(stderr, "Options are:\n");
-    fprintf(stderr, "    -t port  	    Thread pool count, Default is 100\n");
-    fprintf(stderr, "    -p port  	    Server port to listen, Default is 8080\n");
-    fprintf(stderr, "    -f file         Address of startup data file for customers, Default is './src/Records.txt'\n");
+    fprintf(stderr, "    -t thread pool size     Thread pool count, Default is 100\n");
+    fprintf(stderr, "    -p port  	      	    Server port to listen, Default is 8080\n");
+    fprintf(stderr, "    -f file         	    Address of startup data file for customers, Default is './src/Records.txt'\n");
     exit(EINVAL);
 }
 
