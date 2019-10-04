@@ -1,8 +1,9 @@
 /*
  * Customer.h
  *
+ *	This is the Customer class used to store in the HashMap
  *  Created on: Sep 20, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #ifndef SERVER_CUSTOMER_H_
@@ -62,15 +63,20 @@ public:
 		return this -> balance >= money;
 	}
 
+	/**
+	 * This function calcualtes the intrest
+	 */
 	double calculate_intrest() {
 		double updated_amount = roundf(this -> balance  + ( (this ->balance * INTREST_RATE) / 100 )) / 100;
 		return updated_amount;
 	}
+
+
 	template<typename OStream>
-	    friend OStream &operator<<(OStream &os, const Customer &c)
-	    {
-	        return os << "[ " << c.getAccountNumber() << ", "<<c.getName()<<", "<<c.getBalance()<<" ]";
-	    }
+	friend OStream &operator<<(OStream &os, const Customer &c)
+	{
+		return os << "[ " << c.getAccountNumber() << ", "<<c.getName()<<", "<<c.getBalance()<<" ]";
+	}
 
 	std::string get_withdrawl_success_msg(double amount){
 		std::string msg;
@@ -92,17 +98,17 @@ public:
 	}
 
 	std::string get_deposit_success_msg(double amount){
-			std::string msg;
-			std::stringstream stream;
-			stream << std::fixed << std::setprecision(2) <<  amount;
-			msg = "Successfully deposit :$"+stream.str()+", for customer: "+std::to_string(this->account_number);
-			return msg;
-		}
+		std::string msg;
+		std::stringstream stream;
+		stream << std::fixed << std::setprecision(2) <<  amount;
+		msg = "Successfully deposit :$"+stream.str()+", for customer: "+std::to_string(this->account_number);
+		return msg;
+	}
 };
 
 std::ostream& operator<< (std::ostream &out, Customer const& data) {
 	std::stringstream stream;
-		stream << std::fixed << std::setprecision(2) << data.getBalance();
+	stream << std::fixed << std::setprecision(2) << data.getBalance();
 	out<<"[ ";
 	out << data.getAccountNumber() << ", ";
 	out << data.getName() << ", ";
@@ -111,6 +117,9 @@ std::ostream& operator<< (std::ostream &out, Customer const& data) {
 	return out;
 }
 
+/**
+ * This is builder pattern implementation for Customer class
+ */
 class CustomerBuilder {
 private:
 	Customer c;

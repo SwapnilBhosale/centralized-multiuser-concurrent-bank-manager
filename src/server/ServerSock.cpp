@@ -1,8 +1,12 @@
 /*
  * ServerSock.cpp
  *
+ * This is the implementation file for the ServerSock class.
+ * This class actually read from the server socket, reads data
+ * and then notifies the BankServer for the data
+ *
  *  Created on: Sep 16, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #include "ServerSock.h"
@@ -10,6 +14,11 @@
 #include <exception>
 extern int count;
 
+
+/**
+ * This is the parameterized constructor of the ServerSock class
+ * @param port This is the port number on which server should listen to
+ */
 ServerSock::ServerSock(int port) {
 	sockfd = 0;
 	this -> port = port;
@@ -22,7 +31,11 @@ ServerSock::ServerSock(int port) {
 ServerSock::~ServerSock() {
 }
 
-
+/**
+ * This function initializes the Server socket
+ * Binds the server socket
+ * Starts listening on the server socket
+ */
 void ServerSock::init() {
 	struct sockaddr_in srv_addr;
 	sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -55,6 +68,12 @@ void ServerSock::init() {
 	_logger -> info("server listening on port {}", port);
 }
 
+
+/**
+ * This is the  main loop function for the server
+ * Server keeps on running in this loop
+ * This is where the client connection is accepted
+ */
 void * ServerSock::enter_server_loop() {
 	struct sockaddr_in client_addr;
 	socklen_t client_addr_len = sizeof(client_addr);
@@ -79,6 +98,10 @@ void * ServerSock::enter_server_loop() {
 }
 
 
+/**
+ * This function handles each client request
+ * @param client_socket this is the client file descriptor
+ */
 void ServerSock::handle_client(int client_socket) {
 	char buffer[1024];
 
@@ -87,33 +110,12 @@ void ServerSock::handle_client(int client_socket) {
 	tv.tv_usec = 0;
 	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 	long int n = recv(client_socket, &buffer, 1024, 0);
-		/*while(i<size && c != '\n'){
-
-
-			if(n > 0){
-				//buf[i] = c;
-				//i++;
-			}
-		}*/
 	buffer[n]= '\0';
-	//buffer = get_line(client_socket, 1024);
-	//_logger -> info("before strlen {}",sizeof(buffer));
 	unsigned long len = strlen(buffer);
 	_logger -> info("received data len: {}, data: {}",len, buffer);
-	int index = -1;
-	int prevIndex = -1;
-	for (int i = 0; i <strlen(buffer); i++){
-		if (buffer[i] == '\n'){
-			prevIndex = index;
-			index = i;
-		}
-	}
-	//_logger -> info("index is {}",prevIndex);
-	//std::string str(buffer);
-	//std::string payload = str.substr(prevIndex);
-	//_logger->info("************* the payoad now {}",payload);
+
+	//notify the observants. In our case BankServer is the observant
 	obj->notify_observants(buffer, client_socket);
-	//free(buffer);
 	close(client_socket);
 	return;
 }

@@ -2,7 +2,7 @@
  * Observer.cpp
  *
  *  Created on: Sep 20, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 #include "ObserverPattern.h"
 

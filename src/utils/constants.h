@@ -1,8 +1,10 @@
 /*
  * constants.h
  *
+ * This header file defines all the constants used in the projects
+ *
  *  Created on: Sep 21, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #ifndef UTILS_CONSTANTS_H_

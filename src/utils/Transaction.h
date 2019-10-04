@@ -1,8 +1,10 @@
 /*
  * Transaction.h
  *
+ * This class is a blueprint for the transaction happening on the server
+ *
  *  Created on: Sep 20, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #ifndef SERVER_TRANSACTION_H_
@@ -73,6 +75,10 @@ public:
 	}
 };
 
+
+/**
+ * This is builder pattern implementation for Transaction class
+ */
 class TransactionBuilder{
 public:
 	Transaction t;

@@ -2,10 +2,11 @@
  * Server.cpp
  *
  *  Created on: Sep 16, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #include "BankServer.h"
+
 
 BankServer::BankServer() {
 	mutex1 = PTHREAD_MUTEX_INITIALIZER;
@@ -20,12 +21,20 @@ BankServer::BankServer() {
 
 }
 
+/**
+ * This function actually updates the value of customer in the hashmap
+ * @param c It is the customer class object
+ */
 void BankServer::update_customer_map(Customer c){
 	pthread_mutex_lock(&mutex_map);
 	BankServer::customer_map[c.getAccountNumber()] = c;
 	pthread_mutex_unlock(&mutex_map);
 }
 
+/**
+ * This function is a implementation of the intrest service which periodically
+ * adds the intrest to the customeres
+ */
 void *BankServer::handle_intrest_service(){
 	std::unordered_map<int, Customer>:: iterator itr;
 	while(true){
@@ -45,6 +54,15 @@ void BankServer::create_intrest_service(){
 	pthread_create(&intrest_service__thread, NULL, &BankServer::intrest_service_invoke_helper, this);
 }
 
+
+/**
+ * This method withdrawls the amount from the customer account
+ *
+ * @param tstamp It is a timestamp send by client
+ * @param acc_no It is the account number
+ * @param amt	It is the amount to be withdrawn
+ * @return
+ */
 std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::string amt){
 	std::string msg;
 	int int_acc_no = stoi(acc_no);
@@ -67,6 +85,12 @@ std::string BankServer::withdrawal(std::string tstamp, std::string acc_no, std::
 }
 
 
+/**
+ * This function used mutes locking and implement reader protections
+ * This function returns the value of customer from the hashmap
+ * @param id This is the id of the customer whose record is to be retrieved
+ * @return return the Customer class object
+ */
 Customer BankServer::get_customer_by_id(int id){
 	Customer c;
 
@@ -95,6 +119,14 @@ Customer BankServer::get_customer_by_id(int id){
 	return c;
 }
 
+/**
+ * This function updates the customer's balances
+ * Mutex writer implementation is added for thread synchronization and data race issues
+ * @param id This is the id of the customer whose record needs to be updated
+ * @param amount This is the amount to be deposited or withdrawn
+ * @param op This is the opcode, it can be 1(deposit) or 0(withdrawal)
+ * @return
+ */
 std::string BankServer::update_customer_by_id(int id, double amount, int op) {
 
 	//Customer c = get_customer_by_id(id);
@@ -131,6 +163,15 @@ std::string BankServer::update_customer_by_id(int id, double amount, int op) {
 	return msg;
 
 }
+
+
+/**
+ * This function deposits the amount to the customer account
+ * @param tstamp this is the timestamp sent by the server
+ * @param acc_no this is the accoun_no of the customer
+ * @param amt this is the amount to be withdrawn
+ * @return The string message specifying the success or failure
+ */
 std::string BankServer::deposit(std::string tstamp, std::string acc_no, std::string amt){
 	std::string msg;
 	int int_acc_no = stoi(acc_no);
@@ -155,6 +196,11 @@ std::string BankServer::deposit(std::string tstamp, std::string acc_no, std::str
 	return msg;
 }
 
+/**
+ * This method actually calls to withdrawl or deposit method
+ * @param data This is the data received from the client
+ * @param clientSocket This is client socket descriptor
+ */
 void BankServer::do_action(char * data, int clientSocket){
 	count += 1;
 	char * buf;
@@ -175,13 +221,6 @@ void BankServer::do_action(char * data, int clientSocket){
 		break;
 	}
 
-	/*std::string payload("HTTP/1.1 200 OK\r\n");
-	payload.append("Server: Swapnil\r\n");
-	payload.append("Content Type: text/html\r\n");
-	payload.append("Connection: close\r\n");
-	payload.append("Content-Length: ");
-	payload.append(std::to_string(msg.length()).append("\r\n"));*/
-	//payload.append(msg);
 	buf = strcpy(new char[msg.length() + 1], msg.c_str());
 	_logger -> debug("Sending message to client: {}", msg);
 	send(clientSocket, buf, msg.length(), 0);
@@ -191,6 +230,15 @@ BankServer::~BankServer() {
 	delete serverSock;
 }
 
+/**
+ * This function initializes server.
+ * It creates a server socket
+ * Creates intrest service
+ * Creates Thread pool
+ * @param serverFile It is a path to Record.txt file
+ * @param port It is a port number for the server to listen on
+ * @param threadCount This is the thread count for the thread pool
+ */
 void BankServer::init(std::string serverFile, int port, int threadCount){
 	initialize_static_data(serverFile);
 	serverSock = new ServerSock(port);
@@ -202,6 +250,10 @@ void BankServer::init(std::string serverFile, int port, int threadCount){
 }
 
 
+/**
+ * This function actually reads the Records.txt and populates the HashMap
+ * @param ipFile This is path to the file
+ */
 void BankServer::initialize_static_data(std::string ipFile){
 	std::ifstream file;
 	file.open(ipFile);
@@ -225,6 +277,11 @@ void BankServer::initialize_static_data(std::string ipFile){
 
 
 
+/**
+ * This function prints the HashMap contents when terminate signal is received on the
+ * server
+ * @param signal_Number it is the signal number intercepted by the program
+ */
 void BankServer::print_stats(int signal_Number) {
 	std::cout<<std::endl<<"*********************************************"<<std::endl;
 	std::cout<<"Current state of the Customer records!"<<std::endl<<std::endl;
@@ -251,10 +308,19 @@ void BankServer::print_stats(int signal_Number) {
 }
 
 
+/**
+ * This function creates a new thread
+ * @param index this is the index of the thread in threadpool
+ * @param serverSock This is the object of the ServerSock class
+ */
 void BankServer::create_thread(int index, ServerSock *serverSock) {
 	pthread_create(&threads[index], NULL, &ServerSock::thread_pool_loop_helper, serverSock);
 }
 
+/**
+ * This method prints the CLI usage
+ * @param progname This is the program name
+ */
 static void usage(const char *progname)
 {
     fprintf(stderr, "Usage: %s [options] \n", progname);
@@ -266,6 +332,7 @@ static void usage(const char *progname)
     fprintf(stderr, "    -f file         	    Address of startup data file for customers, Default is './src/Records.txt'\n");
     exit(EINVAL);
 }
+
 
 int main(int argc, char **argv) {
 
@@ -301,22 +368,31 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-
+	//create a logger object
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>("./logs/server.txt",1024 * 1024 * 50, 10, true));
 	auto combined_logger = std::make_shared<spdlog::logger>("Server", begin(sinks), end(sinks));
+
+	//set log level
 	combined_logger -> set_level(spdlog::level::info);
+
+	//set logging pattern
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);
 	BankServer server;
 
+	//initialize observer pattern and BankServer class as a observer
 	ObserverPattern *obj = ObserverPattern::get_instance();
 	Observer *ob = &server;
 	obj -> add_observant(ob);
+
+	//catch for signal
 	std::signal(SIGINT, server.print_stats);
 	signal(SIGPIPE, server.print_stats);
 	server.init(file, p, thread_count);
+
+	//join the thread service here
 	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
 
 	//for (;;)

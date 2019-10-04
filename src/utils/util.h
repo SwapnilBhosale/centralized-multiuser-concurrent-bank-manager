@@ -1,8 +1,9 @@
 /*
  * util.h
+ * This header file has all the utility functions used by whole project
  *
  *  Created on: Sep 20, 2019
- *      Author: lilbase
+ *      Author: Swapnil Bhosale
  */
 
 #ifndef SERVER_UTIL_H_
