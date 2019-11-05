@@ -1,0 +1,3 @@
+make -f ../../Makefile
+make: *** No rule to make target 'Project1.o', needed by 'Project1'.  Stop.
+Build complete (1 errors, 0 warnings): /home/lilbase/eclipse-workspace/Project1/build/default

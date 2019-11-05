@@ -1,0 +1,55 @@
+Executable=Server Client
+
+BIN_DIR=bin/
+OBJ_Dir=obj/
+SRC_DIR=src/
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+
+all: $(CSources) $(CExecutable)
+
+$(CExecutable): $(CObjects)
+	$(CC) $(LDFlags) $(CObjects) -o $@
+
+$(ObjectDir)%.o: $(SourceDir)%.cpp
+	$(CC) $(CFlags) $< -o $@
+
+clean:
+	$(RM) $(CObjects)
+
+CXX	:= g++
+OBJECTS := Server.o Client.o
+OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o Client.o
+SERVER_SOURCES := src/BankServer.cpp src/ServerSock.cpp src/ObserverPattern.cpp
+CLIENT_SOURCES := src/Client.cpp
+INC := -I ./include/
+CFLAGS := -g -lpthread -std=c++11 -c
+BIN_DIR := bin
+SERVER_EXECUTABLE := Server
+CLIENT_EXECUTABLE := Client
+
+all: compile
+
+compile: server client
+	${CXX} -g -o Server ${OBJECTS} -lpthread 
+	${CXX} -g -o Server ${OBJECTS} -lpthread 
+
+server: ${SERVER_EXECUTABLE}
+
+client:	${CLIENT_EXECUTABLE}
+
+${SERVER_EXECUTABLE}: ${SERVER_SOURCES}
+	${CXX} ${INC} -${CFLAGS} -o $@
+	
+${CLIENT_EXECUTABLE}: ${CLIENT_SOURCES}
+	${CXX} ${INC} -${CFLAGS} -o $@	 
+
+$(BIN_DIR)/cpp.o: ${SERVER_DIR}/%.c
+    $(CXX) -c ${INC} -${CFLAGS} -o$@ $<
+
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client
+
+.PHONY: all clean

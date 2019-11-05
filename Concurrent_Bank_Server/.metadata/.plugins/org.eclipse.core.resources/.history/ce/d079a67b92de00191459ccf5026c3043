@@ -1,0 +1,89 @@
+/*
+ * client.cpp
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+
+#include "Client.h"
+
+void Client::create_client_Service() {
+	pthread_create(&client_service_thread, NULL, &Client::client_service_invoke_helper, this);
+}
+
+std::string Client::do_transaction(Transaction t){
+	_logger -> info("started transaction");
+	char * buf;
+	struct sockaddr_in serv_addr;
+	if ((client_socket = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		perror("\n Socket creation error \n");
+	}
+	serv_addr.sin_family = PF_INET;
+	serv_addr.sin_port = htons(DEFAULT_SERVER_PORT);
+	// Convert IPv4 and IPv6 addresses from text to binary form
+	if(inet_pton(PF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)
+	{
+		perror("\nInvalid address/ Address not supported \n");
+	}
+
+	if (connect(client_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	{
+		perror("\nConnection Failed \n");
+	}
+	std::string payload = t.generate_transaction_payload();
+	buf = strcpy(new char[payload.length() + 1], payload.c_str());
+	send(client_socket , buf , strlen(buf) , 0 );
+	char recv_buf[1024];
+	bzero(recv_buf,256);
+	int n = read(client_socket, &recv_buf, 1024);
+	recv_buf[n] = '\0';
+	_logger -> info("received data from server: {}",recv_buf);
+	return buf;
+}
+
+void * Client::handle_client_service(){
+	while(1){
+		std::ifstream file;
+		file.open("./src/Transactions.txt");
+		std::string line;
+		if(file.is_open()) {
+			while(getline(file, line)){
+				std::string arr[4];
+				splitString(arr, line);
+				int int_acc_no = std::stoi(arr[1]);
+				TransactionBuilder b;
+				Transaction trans = b.set_account_number(int_acc_no)
+															.set_timestamp(arr[0])
+															.set_transaction_type(arr[2][0])
+															.set_amount(std::stol(arr[3]))
+															.build();
+				do_transaction(trans);
+			}
+
+			sleep(CLIENT_SERVICE_SCHEDULE);
+		}
+		file.close();
+	}
+	return NULL;
+}
+
+int main(int argc, char **argv) {
+	std::vector<spdlog::sink_ptr> sinks;
+	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>("./logs/client.txt",1024 * 1024 * 5, 10, true));
+	auto combined_logger = std::make_shared<spdlog::logger>("Server", begin(sinks), end(sinks));
+	combined_logger -> set_level(spdlog::level::info);
+	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
+	spdlog::register_logger(combined_logger);
+	Client client;
+	//std::signal(SIGINT, server.print_stats);
+	//signal(SIGPIPE, server.print_stats);
+	client.create_client_Service();
+	(void) pthread_join(client.getClientServiceThread(), NULL);//for (;;)
+	//  pause();
+
+}
+
+

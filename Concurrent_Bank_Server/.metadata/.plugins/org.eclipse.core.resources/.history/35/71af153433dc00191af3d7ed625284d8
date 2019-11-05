@@ -1,0 +1,30 @@
+/*
+ * Observer.c
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER1_OBSERVERPATTERN_H_
+#define SERVER1_OBSERVERPATTERN_H_
+#include <vector>
+
+#include "../server1/Observer.h"
+
+class ObserverPattern{
+public:
+	static ObserverPattern* get_instance();
+	void add_observant(Observer *ob);
+	void notify_observants(char *data);
+
+private:
+	std::vector<class Observer *> vect;
+	static ObserverPattern *instance;
+	ObserverPattern();
+
+};
+
+
+
+
+#endif /* SERVER1_OBSERVERPATTERN_H_ */

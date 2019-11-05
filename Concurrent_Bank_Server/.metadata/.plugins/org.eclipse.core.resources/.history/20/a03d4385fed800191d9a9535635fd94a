@@ -1,0 +1,27 @@
+/*
+ * ServerSock.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: Swapnil Bhosale
+ */
+
+#include <string>
+#include <iostream>
+#include <sys/socket.h>
+
+#ifndef SERVERSOCK_H_
+#define SERVERSOCK_H_
+
+
+class ServerSock {
+public:
+	ServerSock();
+	ServerSock(unsigned int port);
+	virtual ~ServerSock();
+	int init();
+private:
+	unsigned int port;
+	int sockfd;
+};
+
+#endif /* SERVERSOCK_H_ */

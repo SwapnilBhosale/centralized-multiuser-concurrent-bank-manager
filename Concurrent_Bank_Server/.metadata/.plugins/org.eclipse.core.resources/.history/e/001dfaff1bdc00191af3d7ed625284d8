@@ -1,0 +1,19 @@
+/*
+ * Observer.h
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_OBSERVER_H_
+#define SERVER_OBSERVER_H_
+
+
+class Observer {
+
+	virtual void notify(char *data);
+	 virtual ~Observer() {}
+};
+
+
+#endif /* SERVER_OBSERVER_H_ */

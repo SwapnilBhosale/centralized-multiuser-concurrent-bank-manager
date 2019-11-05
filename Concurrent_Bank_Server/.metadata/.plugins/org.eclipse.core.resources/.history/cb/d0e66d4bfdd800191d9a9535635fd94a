@@ -1,0 +1,22 @@
+/*
+ * ServerSock.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVERSOCK_H_
+#define SERVERSOCK_H_
+
+class ServerSock {
+public:
+	ServerSock();
+	ServerSock(unsigned int port);
+	virtual ~ServerSock();
+	int init(unsigned int port);
+private:
+	unsigned int port;
+	int sockfd;
+};
+
+#endif /* SERVERSOCK_H_ */

@@ -1,0 +1,21 @@
+/*
+ * Transaction.h
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_TRANSACTION_H_
+#define SERVER_TRANSACTION_H_
+
+enum transaction_type { w = "withdrawl", d="deposit"}
+class Transaction {
+private:
+	std::string name;
+	int account_number;
+	char transaction_type;
+};
+
+
+
+#endif /* SERVER_TRANSACTION_H_ */

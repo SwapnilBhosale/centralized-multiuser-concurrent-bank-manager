@@ -1,0 +1,21 @@
+/*
+ * ServerUi.h
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVERGUI_H_
+#define SERVERGUI_H_
+
+
+#include <gtkmm.h>
+class Gui {
+private:
+	auto app;
+	Gtk::Window window;
+public:
+	int create_window()
+};
+
+#endif /* SERVERGUI_H_ */

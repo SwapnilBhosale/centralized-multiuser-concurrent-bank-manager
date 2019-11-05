@@ -1,0 +1,6 @@
+
+class ClockServer {
+	
+	ClockServer();
+	void init(int port)
+}

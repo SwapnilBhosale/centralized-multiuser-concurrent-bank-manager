@@ -1,0 +1,35 @@
+/*
+ * client.h
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+#ifndef CLIENT_H_
+#define CLIENT_H_
+#include <iostream>
+#include <fstream>
+#include <pthread.h>
+
+class Client {
+private:
+	pthread_t client_service_thread;
+public:
+	static void *client_service_invoke_helper(void *context){
+		return ((Client *)context)->handle_client_service();
+	}
+	void create_client_Service();
+	void  * handle_client_service();
+
+	pthread_t getClientServiceThread() const
+	{
+		return client_service_thread;
+	}
+
+	void setClientServiceThread(pthread_t clientServiceThread)
+	{
+		client_service_thread = clientServiceThread;
+	}
+};
+
+#endif /* CLIENT_H_ */

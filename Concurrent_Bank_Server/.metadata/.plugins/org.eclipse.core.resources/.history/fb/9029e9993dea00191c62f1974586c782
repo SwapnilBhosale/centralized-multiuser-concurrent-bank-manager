@@ -1,0 +1,162 @@
+/*
+ * cracker.c
+ *
+ *  Created on: Oct 8, 2019
+ *      Author: lilbase
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "/usr/include/mpi/mpi.h"
+#include <openssl/md5.h>
+#include <time.h>
+char charset[]= {"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
+
+#define n 62
+
+char  charset_temp[n];
+//clock_t begin = clock(), end;
+double time_spent;
+
+char *str2md5(const char *str, int length) {
+    int nn;
+    MD5_CTX c;
+    unsigned char digest[16];
+    char *out = (char*)malloc(33);
+
+    MD5_Init(&c);
+
+    while (length > 0) {
+        if (length > 512) {
+            MD5_Update(&c, str, 512);
+        } else {
+            MD5_Update(&c, str, length);
+        }
+        length -= 512;
+        str += 512;
+    }
+
+    MD5_Final(digest, &c);
+
+    for (nn = 0; nn < 16; ++nn) {
+        snprintf(&(out[nn*2]), 16*2, "%02x", (unsigned int)digest[nn]);
+    }
+
+    return out;
+}
+
+void doItSixTimes(char *hash){
+
+	int i, j, k, m, nnn, l;
+
+	for(i=0; i<sizeof(charset); i++){ //letters + numbers
+	        for(j=0; j<sizeof(charset); j++){
+	            for(k=0; k<sizeof(charset); k++){
+	                for(m=0; m<sizeof(charset); m++){
+	                    for(nnn=0; nnn<sizeof(charset); nnn++){
+	                        for(l=0; l<sizeof(charset); l++){
+	                            char guess6[] = {charset[i], charset[j], charset[k], charset[m], charset[n], charset[l], '\0'};
+	                            printf("%s\n", guess6);
+	                            if(strcmp(str2md5(guess6, strlen(guess6)),hash) == 0){
+	                                printf("We guessed it! Your input was - %s \n", guess6);
+	                                //end = clock();
+	                                //time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	                                //printf("Time spent: %f seconds\n", time_spent);
+	                                free(hash);
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+}
+
+int main(int argc, char* argv[])
+{
+
+    int pid, np,
+        elements_per_process,
+        n_elements_recieved;
+    // np -> no. of processes
+    // pid -> process id
+    MPI_Status status;
+
+    // Creation of parallel processes
+    MPI_Init(&argc, &argv);
+
+    // find out process ID,
+    // and how many processes were started
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+    // master process
+    if (pid == 0) {
+        int index, i;
+        elements_per_process = n / np-1;
+
+        // check if more than 1 processes are run
+        if (np > 1) {
+            // distributes the portion of array
+            // to child processes to calculate
+            // their partial sums
+        	for (i = 1; i < np-1; i++) {
+        		int startindex = elements_per_process*(i-1);
+        		int endindex = elements_per_process*i;
+        		//int length = endindex - startindex;
+        		MPI_Send(&startindex, 1, MPI_INT, i, 0, MPI_COMM_WORLD);   //Blokcing call
+        		MPI_Send(&endindex, 1, MPI_INT, i , 0, MPI_COMM_WORLD);
+        	}
+
+        	int startindex = elements_per_process*(np-2);
+        	int endindex = n;
+        	MPI_Send(&startindex, 1, MPI_INT, np-1, 0, MPI_COMM_WORLD);   //Blokcing call
+        	MPI_Send(&endindex, 1, MPI_INT, np-1 , 0, MPI_COMM_WORLD);
+        }
+        char input[7];
+        printf("\n Enter 6 digit password : ");
+        scanf("%s", input);
+
+        unsigned char *result = (char*)malloc(33);
+        result = str2md5(input, strlen(input));
+        result[33] = '\0';
+        printf("Computed digest = %s, password = %s",result, input);
+        printf("\n the data is : ");
+
+        for (i = 1; i < np-1; i++) {
+
+                		MPI_Send(result, 32, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+                	}
+        //MPI_Bcast(result, 32, MPI_CHAR, 0, MPI_COMM_WORLD);
+        // master process add its own sub array
+        char *found_password = (char *)malloc(sizeof(char) * 7);
+        MPI_Recv(&found_password, 7, MPI_CHAR, MPI_ANY_SOURCE,0,MPI_COMM_WORLD, &status);
+        // prints the final sum of array
+        printf("Cracked the password : %s\n", found_password);
+    }
+    // slave processes
+    else {
+    	int startIndex, endIndex;
+    	char *hash = (char *)malloc (sizeof(char) * 32);
+    	MPI_Recv(&startIndex, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&endIndex, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+    	//printf("got %d %d",startIndex, endIndex);
+    	int length = endIndex - startIndex;
+    	char mycharSet [length];
+    	strncpy(mycharSet, charset + startIndex, length);
+    	MPI_Recv(hash, 32, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+    	printf("need to find %s", hash);
+    	char found[7] = {'\0'};
+    	printf("started printing the substrings");
+    	//printAllKLength(hash, &found);
+    	doItSixTimes(hash);
+    	//if found send response
+    }
+
+    // cleans up all MPI state before exit of process
+    MPI_Finalize();
+
+    return 0;
+}

@@ -1,0 +1,11 @@
+OBJECTS = client.o server.o
+BUILD_DIR = ./build
+CC= g++
+compile:	${OBJECTS}
+
+server.o: BankServer.o ServerSock.o ObserverPattern.o
+	${CC} -lpthread -std=c++11 -o bin/Server BankServer.o ServerSock.o ObserverPattern.o
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

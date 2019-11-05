@@ -1,0 +1,7 @@
+#!/bin/bash
+rm -rf *.o
+rm -f Server
+g++ -g -lpthread -std=c++11 `pkg-config gtkmm-3.0 --cflags --libs` -c BankServer.cpp ServerSock.cpp ObserverPattern.cpp
+g++ -g `pkg-config gtkmm-3.0 --cflags --libs` -o Server BankServer.o ServerSock.o ObserverPattern.o -lpthread 
+echo "Running program now."
+./Server

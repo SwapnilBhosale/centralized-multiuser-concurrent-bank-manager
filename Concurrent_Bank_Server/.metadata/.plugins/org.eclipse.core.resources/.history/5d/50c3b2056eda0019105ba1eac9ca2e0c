@@ -1,0 +1,61 @@
+/*
+ * Server.cpp
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#include "Server.h"
+#include "ServerSock.h"
+
+Server::Server() {
+	// TODO Auto-generated constructor stub
+
+}
+
+Server::~Server() {
+	// TODO Auto-generated destructor stub
+}
+
+void Server::print_stats(int signal_Number) {
+    double user, sys;
+    struct rusage   myusage;
+
+    if (getrusage(RUSAGE_SELF, &myusage) < 0)
+        std::cout<< "Error: getrusage()";
+
+    user = (double) myusage.ru_utime.tv_sec +
+                    myusage.ru_utime.tv_usec/1000000.0;
+    sys = (double) myusage.ru_stime.tv_sec +
+                   myusage.ru_stime.tv_usec/1000000.0;
+
+    printf("\nuser time = %g, sys time = %g\n", user, sys);
+    exit(0);
+}
+
+void Server::create_thread(int index) {
+	 pthread_create(&threads[index], NULL, &enter_server_loop, NULL);
+}
+
+
+int main(int argc, char **argv) {
+		Server server;
+		ServerSock *serverSock = NULL;
+	    std::signal(SIGINT, server.print_stats);
+
+	    if (argc > 1)
+	    	serverSock = new ServerSock(strtoul(argv[1], 0, 10));
+	    else
+	    	serverSock = new ServerSock();
+
+	    signal(SIGPIPE, SIG_IGN);
+
+	    std::cout<<"server listening on port "<<serverSock->port;
+	    serverSock->init();
+	    for (int i = 0; i < THREADS_COUNT; ++i) {
+	        server.create_thread(i);
+	    }
+
+	    for (;;)
+	        pause();
+}

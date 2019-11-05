@@ -1,0 +1,78 @@
+/*
+ * Transaction.h
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_TRANSACTION_H_
+#define SERVER_TRANSACTION_H_
+
+enum transaction_type { w, d};
+
+class Transaction {
+private:
+	std::string name;
+	int account_number;
+	transaction_type type;
+	long int amount;
+public:
+	Transaction();
+
+	int getAccountNumber() const
+	{
+		return account_number;
+	}
+
+	void setAccountNumber(int accountNumber)
+	{
+		account_number = accountNumber;
+	}
+
+	long int getAmount() const
+	{
+		return amount;
+	}
+
+	void setAmount(long int amount)
+	{
+		this->amount = amount;
+	}
+
+	const std::string& getName() const
+	{
+		return name;
+	}
+
+	void setName(const std::string& name)
+	{
+		this->name = name;
+	}
+
+	transaction_type getType() const
+	{
+		return type;
+	}
+
+	void setType(transaction_type type)
+	{
+		this->type = type;
+	}
+};
+
+class TransactionBuilder{
+public:
+	Transaction *t;
+	TransactionBuilder(){
+		t = new Transaction();
+	}
+
+	TransactionBuilder set_name(std::string name){
+		t->setName(name);
+	}
+
+};
+
+
+
+#endif /* SERVER_TRANSACTION_H_ */

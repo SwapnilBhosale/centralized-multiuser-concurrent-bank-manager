@@ -1,0 +1,50 @@
+/*
+ * Server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_H_
+#define SERVER_H_
+#include <iostream>
+#include <unordered_map>
+#include <list>
+#include <pthread.h>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <iterator>
+#include "ServerSock.h"
+#include "Transaction.h"
+#include "Customer.h"
+
+typedef void * (*THREADFUNCPTR)(void *);
+#define THREADS_COUNT 100
+
+
+
+void splitString(std::string (&arr)[3], std::string str)
+{
+    int n = 0;
+    std::istringstream iss(str);
+    for (auto it = std::istream_iterator<std::string>(iss); it != std::istream_iterator<string>() && n < N; ++it, ++n)
+        arr[n] = *it;
+}
+
+class BankServer {
+public:
+	BankServer();
+	virtual ~BankServer();
+	void init();
+
+	void static print_stats(int signal_number);
+	void create_thread(int index, ServerSock *serverSock);
+
+private:
+	ServerSock *serverSock;
+	pthread_t threads[THREADS_COUNT];
+	void initialize_static_data();
+};
+
+#endif /* SERVER_H_ */

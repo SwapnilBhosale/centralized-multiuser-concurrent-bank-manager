@@ -1,0 +1,10 @@
+OBJECTS = client.o sever.o
+BUILD_DIR = ./build
+CC= g++
+compile:	${OBJECTS}
+
+server.o: 
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

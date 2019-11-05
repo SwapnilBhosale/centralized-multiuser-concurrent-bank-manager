@@ -1,0 +1,150 @@
+/*
+ * cracker.c
+ *
+ *  Created on: Oct 8, 2019
+ *      Author: lilbase
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "/usr/include/mpi/mpi.h"
+#include <openssl/md5.h>
+
+char charset = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's' \
+				, 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L' \
+				, 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3','4' \
+				, '5', '6', '7', '8', '9'};
+
+#define n 62
+
+char  charset_temp[n];
+
+
+void printAllKLengthRec(char *prefix, int k, char hash[])
+{
+
+    // Base case: k is 0,
+    // print prefix
+    if (k == 0)
+    {
+        //check NOw :
+    	unsigned char digest[16];
+    	struct MD5Context context;
+    	MD5Init(&context);
+    	MD5Update(&context, prefix, strlen(prefix));
+    	MD5Final(digest, &context);
+    	if(strcmp(digest, hash)== 0){
+    		MPI_Send(&prefix, 7, MPI_INT,
+    		                 0, 0, MPI_COMM_WORLD);
+    	}
+
+    }
+
+    // One by one add all characters
+    // from set and recursively
+    // call for k equals to k-1
+    for (int i = 0; i < n; i++)
+    {
+    	int len;
+    	char *newPrefix = malloc(strlen(prefix) + 1 + 1 );
+
+    	strcpy(newPrefix, prefix);
+        // Next character of input added
+    	newPrefix[len] = charset[i];
+    	newPrefix[len+1] = '\0';
+        // k is decreased, because
+        // we have added a new character
+        printAllKLengthRec(newPrefix, k - 1, hash);
+        free(newPrefix);
+    }
+
+}
+
+void printAllKLength(char *hash, char *found)
+{
+    printAllKLengthRec("", 6, hash);
+}
+
+int main(int argc, char* argv[])
+{
+
+    int pid, np,
+        elements_per_process,
+        n_elements_recieved;
+    // np -> no. of processes
+    // pid -> process id
+    MPI_Status status;
+
+    // Creation of parallel processes
+    MPI_Init(&argc, &argv);
+
+    // find out process ID,
+    // and how many processes were started
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+    // master process
+    if (pid == 0) {
+        int index, i;
+        elements_per_process = n / np-1;
+
+        // check if more than 1 processes are run
+        if (np > 1) {
+            // distributes the portion of array
+            // to child processes to calculate
+            // their partial sums
+        	for (i = 1; i < np-1; i++) {
+        		int startindex = elements_per_process*(i-1);
+        		int endindex = elements_per_process*i;
+        		//int length = endindex - startindex;
+        		MPI_Send(&startindex, 1, MPI_INT, i, 0, MPI_COMM_WORLD);   //Blokcing call
+        		MPI_Send(&endindex, 1, MPI_INT, i , 0, MPI_COMM_WORLD);
+        	}
+
+        	int startindex = elements_per_process*(np-2);
+        	int endindex = n;
+        	MPI_Send(&startindex, 1, MPI_INT, np-1, 0, MPI_COMM_WORLD);   //Blokcing call
+        	MPI_Send(&endindex, 1, MPI_INT, np-1 , 0, MPI_COMM_WORLD);
+        }
+        char input[7];
+        printf("\n Enter 6 digit password : ");
+        scanf("%s", input);
+
+        unsigned char digest[17];
+        struct MD5Context context;
+        MD5Init(&context);
+        MD5Update(&context, input, strlen(input));
+        MD5Final(digest, &context);
+        digest[17] = '\0';
+        printf("Computed digest = %s, password = %s",digest, digest);
+
+        MPI_Bcast(digest, 17, MPI_CHAR, 0, MPI_COMM_WORLD);
+        // master process add its own sub array
+        char *found_password = (char *)malloc(sizeof(char) * 6);
+        MPI_Recv(&found_password, 7, MPI_CHAR, MPI_ANY_SOURCE,0,MPI_COMM_WORLD, &status);
+        // prints the final sum of array
+        printf("Cracked the password : %s\n", found_password);
+    }
+    // slave processes
+    else {
+    	int startIndex, endIndex;
+    	char *hash = (char *)malloc (sizeof(char) * 128);
+    	MPI_Recv(&startIndex, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&endIndex, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+    	int length = endIndex - startIndex;
+    	char mycharSet [length];
+    	strncpy(mycharSet, charset + startIndex, length);
+    	MPI_Recv(hash, 6, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+
+    	char found[7] = {'\0'};
+    	printAllKLength(hash, &found);
+    	//if found send response
+    }
+
+    // cleans up all MPI state before exit of process
+    MPI_Finalize();
+
+    return 0;
+}

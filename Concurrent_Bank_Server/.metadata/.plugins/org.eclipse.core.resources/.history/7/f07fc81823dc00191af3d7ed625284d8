@@ -1,0 +1,17 @@
+PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+OBJS = server/BankServer.o ServerSock.o ObserverPattern.o
+BINARY = server/Server
+compile:	project1
+
+project1:	$(OBJS)
+	$(CXX) -o $@ $^
+
+%.o:	$(PROJECT_ROOT)%.cpp
+	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+
+%.o:	$(PROJECT_ROOT)%.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+
+clean:
+	rm -fr $(OBJS)

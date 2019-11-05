@@ -1,0 +1,28 @@
+ 
+FLAGS = -std=c++11 -lpthread 
+LDFLAGS = -lpthread
+
+SERVER_TARGET = Server
+CLIENT_TARGET = Client
+SOURCES = $(shell echo src/server/*.cpp) $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
+
+LOG_LIBRARY_HEADERS = src/include/
+
+CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
+SERVER_SRC = $(shell echo src/server/*.cpp) $(shell echo src/utils/*.cpp)
+
+OBJECTS = $(CLIENT_SRC:.cpp=.o)
+
+all: ${SERVER_TARGET} ${CLIENT_TARGET}
+
+clean:
+	rm -f src/server/*.o src/client/*.o src/utils/*.o $(SERVER_TARGET) $(CLIENT_TARGET)
+
+%.o : %.cpp
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@
+
+${SERVER_TARGET}: $(SERVER_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(SERVER_SRC) -o $(SERVER_TARGET) ${LDFLAGS}
+	
+${CLIENT_TARGET}: $(CLIENT_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CLIENT_SRC) -o $(CLIENT_TARGET) ${LDFLAGS}

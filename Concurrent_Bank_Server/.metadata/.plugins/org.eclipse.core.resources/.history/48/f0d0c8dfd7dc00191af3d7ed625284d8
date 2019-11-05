@@ -1,0 +1,15 @@
+/*
+ * ServerUi.h
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVERGUI_H_
+#define SERVERGUI_H_
+
+
+#include <gtk/gtk.h>
+
+
+#endif /* SERVERGUI_H_ */

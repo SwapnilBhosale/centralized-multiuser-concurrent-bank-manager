@@ -1,0 +1,26 @@
+/*
+ * Server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#include <pthread.h>
+
+#ifndef SERVER_H_
+#define SERVER_H_
+#define THREADS_COUNT 100
+
+class Server {
+public:
+	Server();
+	virtual ~Server();
+
+	void print_stats(int signal_number);
+	void create_thread(int index);
+private:
+	pthread_t threads[THREADS_COUNT];
+	int get_line(int sock, char *buf, int size);
+};
+
+#endif /* SERVER_H_ */

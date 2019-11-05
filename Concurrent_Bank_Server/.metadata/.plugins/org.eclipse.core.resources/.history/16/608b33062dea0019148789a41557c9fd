@@ -1,0 +1,189 @@
+/*
+ * cracker.c
+ *
+ *  Created on: Oct 8, 2019
+ *      Author: lilbase
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "/usr/include/mpi/mpi.h"
+//#include <mpi.h>
+#include <openssl/md>
+
+char charset = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's' \
+				, 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L' \
+				, 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3','4' \
+				, '5', '6', '7', '8', '9'};
+
+#define n 62
+
+char  charset_temp[n];
+
+
+void printAllKLengthRec(char *prefix, char * password, int startIndex, int endIndex, int k)
+{
+
+
+
+    // One by one add all characters
+    // from set and recursively
+    // call for k equals to k-1
+    for (int i = 0; i < n; i++)
+    {
+        string newPrefix;
+
+        // Next character of input added
+        newPrefix = prefix + set[i];
+
+        // k is decreased, because
+        // we have added a new character
+        printAllKLengthRec(set, newPrefix, n, k - 1);
+    }
+
+}
+
+void printAllKLength(char *prefix , char *password, int k)
+{
+    printAllKLengthRec(prefix, password, "", n, k);
+}
+
+int main(int argc, char* argv[])
+{
+
+    int pid, np,
+        elements_per_process,
+        n_elements_recieved;
+    // np -> no. of processes
+    // pid -> process id
+    MPI_Status status;
+
+    // Creation of parallel processes
+    MPI_Init(&argc, &argv);
+
+    // find out process ID,
+    // and how many processes were started
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+    // master process
+    if (pid == 0) {
+        int index, i;
+        elements_per_process = n / np-1;
+
+        // check if more than 1 processes are run
+        if (np > 1) {
+            // distributes the portion of array
+            // to child processes to calculate
+            // their partial sums
+        	for (i = 1; i < np-1; i++) {
+        		int startindex = elements_per_process*(i-1);
+        		int endindex = elements_per_process*i;
+        		//int length = endindex - startindex;
+        		MPI_Send(&startindex, 1, MPI_INT, i, 0, MPI_COMM_WORLD);   //Blokcing call
+        		MPI_Send(&endindex, 1, MPI_INT, i , 0, MPI_COMM_WORLD);
+        	}
+
+        	int startindex = elements_per_process*(np-2);
+        	int endindex = n;
+        	MPI_Send(&startindex, 1, MPI_INT, np-1, 0, MPI_COMM_WORLD);   //Blokcing call
+        	MPI_Send(&endindex, 1, MPI_INT, np-1 , 0, MPI_COMM_WORLD);
+        }
+
+        // master process add its own sub array
+        char *found_password = (char *)malloc(sizeof(char) * 6);
+        MPI_Recv(&found_password, 6, MPI_CHAR, MPI_ANY_SOURCE,0,MPI_COMM_WORLD, &status);
+        // prints the final sum of array
+        printf("Cracked the password : %s\n", found_password);
+    }
+    // slave processes
+    else {
+        MPI_Recv(&n_elements_recieved,
+                 1, MPI_INT, 0, 0,
+                 MPI_COMM_WORLD,
+                 &status);
+
+        // stores the received array segment
+        // in local array a2
+        MPI_Recv(&a2, n_elements_recieved,
+                 MPI_INT, 0, 0,
+                 MPI_COMM_WORLD,
+                 &status);
+
+        // calculates its partial sum
+        int partial_sum = 0;
+        for (int i = 0; i < n_elements_recieved; i++)
+            partial_sum += a2[i];
+
+        // sends the partial sum to the root process
+        MPI_Send(&partial_sum, 1, MPI_INT,
+                 0, 0, MPI_COMM_WORLD);
+    }
+
+    // cleans up all MPI state before exit of process
+    MPI_Finalize();
+
+    return 0;
+}
+
+int matches(byte *a, byte* b) {
+	for (int i = 0; i < 32; i++)
+		if (a[i] != b[i])
+			return 0;
+	return 1;
+}
+
+
+byte* StringHashToByteArray(const char* s) {
+	byte* hash = (byte*) malloc(32);
+	char two[3];
+	two[2] = 0;
+	for (int i = 0; i < 32; i++) {
+		two[0] = s[i * 2];
+		two[1] = s[i * 2 + 1];
+		hash[i] = (byte)strtol(two, 0, 16);
+	}
+	return hash;
+}
+
+void printResult(byte* password, byte* hash) {
+	char sPass[6];
+	memcpy(sPass, password, 5);
+	sPass[5] = 0;
+	printf("%s => ", sPass);
+	for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+		printf("%02x", hash[i]);
+	printf("\n");
+}
+
+int main(int argc, char **argv)
+{
+
+#pragma omp parallel
+	{
+
+#pragma omp for
+		for (int a = 0; a < 26; a++)
+		{
+			byte password[5] = { 97 + a };
+			byte* one =   StringHashToByteArray("1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad");
+			byte* two =   StringHashToByteArray("3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b");
+			byte* three = StringHashToByteArray("74e1bb62f8dabb8125a58852b63bdf6eaef667cb56ac7f7cdba6d7305c50a22f");
+			for (password[1] = 97; password[1] < 123; password[1]++)
+				for (password[2] = 97; password[2] < 123; password[2]++)
+					for (password[3] = 97; password[3] < 123; password[3]++)
+						for (password[4] = 97; password[4] < 123; password[4]++) {
+							byte *hash = SHA256(password, 5, 0);
+							if (matches(one, hash) || matches(two, hash) || matches(three, hash))
+								printResult(password, hash);
+						}
+			free(one);
+			free(two);
+			free(three);
+		}
+	}
+
+	return 0;
+}

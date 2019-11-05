@@ -1,0 +1,18 @@
+
+CXX	:= g++
+OBJECTS	:= server.o 
+
+
+all: BankServer
+
+compile: ${OBJ_FILES}
+	${CC} -lpthread -o bin/Server BankServer.o ServerSock.o ObserverPattern.o
+
+%.o: server/%.cpp server/%.h
+	${CC}  -std=c++11  -lpthread -c BankServer.cpp ServerSock.cpp ObserverPattern.cpp
+	
+
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

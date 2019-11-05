@@ -1,0 +1,46 @@
+/*
+ * client.cpp
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+
+#include "client.h"
+
+void Client::create_client_Service() {
+	pthread_create(&client_service_thread, NULL, &Client::client_service_invoke_helper, this);
+}
+
+void * Client::handle_client_service(){
+	std::ifstream file;
+	file.open("Transactions.txt");
+	std::string line;
+	if(file.is_open()) {
+		while(getline(file, line)){
+			std::string arr[4];
+			splitString(arr, line);
+			int int_acc_no = stoi(arr[2]);
+			TransactionBuilder b;
+			Transaction trans = b.set_account_number(int_acc_no)
+									.set_timestamp(arr[0])
+									.set_transaction_type(arr[2][0])
+									.set_amount(stol(arr[3]))
+									.build();
+			std::string response = do_transactions(trans);
+		}
+	}
+	file.close();
+}
+
+int main(int argc, char **argv) {
+	Client client;
+	//std::signal(SIGINT, server.print_stats);
+	//signal(SIGPIPE, server.print_stats);
+	client.create_client_Service();
+	(void) pthread_join(client.getClientServiceThread(), NULL);//for (;;)
+	//  pause();
+
+}
+
+

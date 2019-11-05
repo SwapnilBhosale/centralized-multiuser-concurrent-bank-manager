@@ -1,0 +1,150 @@
+/*
+ * ServerSock.cpp
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#include "ServerSock.h"
+
+ServerSock::ServerSock() {
+	this->port = DEFAULT_SERVER_PORT;
+	sockfd = 0;
+
+}
+
+ServerSock::ServerSock(unsigned int port) {
+	this->port = port;
+	sockfd = 0 ;
+}
+
+ServerSock::~ServerSock() {
+}
+
+int ServerSock::init() {
+	int sock;
+	struct sockaddr_in srv_addr;
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (sock == -1)
+		std::cout<< "error : socket()";
+
+	int enable = 1;
+	if (setsockopt(sock,
+			SOL_SOCKET, SO_REUSEADDR,
+			&enable, sizeof(int)) < 0)
+		std::cout<< "setsockopt(SO_REUSEADDR)";
+
+	bzero(&srv_addr, sizeof(srv_addr));
+	srv_addr.sin_family = AF_INET;
+	srv_addr.sin_port = htons(port);
+	srv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	/* We bind to a port and turn this socket into a listening
+	 * socket.
+	 * */
+	if (bind(sock, (const struct sockaddr *)&srv_addr, sizeof(srv_addr)) < 0)
+		std::cout<<"Error:bind()";
+
+	if (listen(sock, 10) < 0)
+		std::cout<<"error: listen()";
+
+	return (sock);
+}
+
+void ServerSock::enter_server_loop() {
+	struct sockaddr_in client_addr;
+	socklen_t client_addr_len = sizeof(client_addr);
+
+	while (1)
+	{
+		pthread_mutex_lock(&mlock);
+		long client_socket = accept(
+				this->sockfd,
+				(struct sockaddr *)&client_addr,
+				&client_addr_len);
+		if (client_socket == -1)
+			std::cout<<"Error : accept()";
+		pthread_mutex_unlock(&mlock);
+
+		handle_client(client_socket);
+	}
+}
+
+int get_line(int sock, char *buf, int size) {
+    int i = 0;
+    char c = '\0';
+    ssize_t n;
+
+    while ((i < size - 1) && (c != '\n'))
+    {
+        n = recv(sock, &c, 1, 0);
+        if (n > 0)
+        {
+            if (c == '\r')
+            {
+                n = recv(sock, &c, 1, MSG_PEEK);
+                if ((n > 0) && (c == '\n'))
+                    recv(sock, &c, 1, 0);
+            }
+            else
+            {
+                buf[i] = c;
+                i++;
+            }
+        }
+        else
+            return 0;
+    }
+    buf[i] = '\0';
+
+    return (i);
+}
+
+void handle_client(int client_socket) {
+	char line_buffer[1024];
+	char method_buffer[1024];
+	int method_line = 0;
+	int redis_server_socket;
+
+
+	/*
+	 * Setup a timeout on recv() on the client socket
+	 * */
+	struct timeval tv;
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
+	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
+
+	while (1)
+	{
+		get_line(client_socket, line_buffer, sizeof(line_buffer));
+		method_line++;
+
+		unsigned long len = strlen(line_buffer);
+
+		/*
+		 The first line has the HTTP method/verb. It's the only
+		 thing we care about. We read the rest of the lines and
+		 throw them away.
+		 */
+		if (method_line == 1)
+		{
+			if (len == 0)
+				return;
+
+			strcpy(method_buffer, line_buffer);
+		}
+		else
+		{
+			if (len == 0)
+				break;
+		}
+	}
+
+	handle_http_method(method_buffer, client_socket);
+	close(client_socket);
+	close(redis_socket_fd);
+	return;
+}
+

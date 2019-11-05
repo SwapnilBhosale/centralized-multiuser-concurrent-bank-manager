@@ -1,0 +1,18 @@
+/*
+ * server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: Swapnil Bhosale
+ */
+
+#ifndef SERVER_H_
+#define SERVER_H_
+#include <string>
+
+class Server {
+
+};
+
+
+
+#endif /* SERVER_H_ */

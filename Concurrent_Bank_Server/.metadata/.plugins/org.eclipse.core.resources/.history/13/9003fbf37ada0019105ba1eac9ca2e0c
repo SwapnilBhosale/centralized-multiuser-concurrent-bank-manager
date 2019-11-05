@@ -1,0 +1,34 @@
+/*
+ * Server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_H_
+#define SERVER_H_
+#include<iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
+#include "ServerSock.h"
+
+
+#define THREADS_COUNT 100
+
+typedef void * (*THREADFUNCPTR)(void *);
+
+class Server {
+public:
+	Server();
+	virtual ~Server();
+
+	void static print_stats(int signal_number);
+	void create_thread(int index, ServerSock *serverSock);
+	std::vector<std::thread> workers;
+private:
+
+	std::mutex mlock;
+};
+
+#endif /* SERVER_H_ */

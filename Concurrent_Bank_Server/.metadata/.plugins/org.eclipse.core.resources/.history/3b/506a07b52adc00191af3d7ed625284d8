@@ -1,0 +1,24 @@
+CXX	:= g++
+OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o
+
+
+
+compile: ${OBJECTS}
+	${CXX} -lpthread ${OBJECTS} -o Server
+
+%.o: server/%.cpp server/%.h
+	${CXX}  -std=c++11  -lpthread -c BankServer.cpp ServerSock.cpp ObserverPattern.cpp
+	
+ObserverPattern.o: ./server/ObserverPattern.cpp
+	${CXX} -std=c++11  -lpthread -c ObserverPattern.cpp
+	
+ServerSock.o: ./server/ServerSock.cpp
+	${CXX} -std=c++11  -lpthread -c ServerSock.cpp	
+	
+BankServer.o: ./server/BankServer.cpp
+	${CXX} -std=c++11  -lpthread -c BankServer.cpp
+
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

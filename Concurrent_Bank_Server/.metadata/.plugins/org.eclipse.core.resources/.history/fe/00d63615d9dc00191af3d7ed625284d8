@@ -1,0 +1,22 @@
+/*
+ * ServerUi.h
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVERGUI_H_
+#define SERVERGUI_H_
+
+
+#include <gtkmm.h>
+auto app =
+    Gtk::Application::create(argc, argv,
+      "org.gtkmm.examples.base");
+
+  Gtk::Window window;
+  window.set_default_size(200, 200);
+
+  return app->run(window);
+
+#endif /* SERVERGUI_H_ */

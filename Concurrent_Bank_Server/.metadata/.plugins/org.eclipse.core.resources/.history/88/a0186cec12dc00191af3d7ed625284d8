@@ -1,0 +1,10 @@
+/*
+ * Observer.cpp
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+#include <iostream>
+#include "observer.h"
+ObserverPattern * ObserverPattern::instance = NULL;
+

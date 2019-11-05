@@ -1,0 +1,120 @@
+/*
+ * clock_berkeley.h
+ *
+ *  Created on: Oct 26, 2019
+ *      Author: Swapnil Bhosale
+ */
+
+#include <iostream>
+#include <stdlib.h>
+#include <mpi.h>
+#include <string.h>
+#include <math.h>
+#include "./include/spdlog/spdlog.h"
+#include "./include/spdlog/sinks/stdout_color_sinks.h"
+#include <vector>
+#include <pthread.h>
+#include <time.h>
+
+#ifndef CLOCK_BERKELEY_H_
+#define CLOCK_BERKELEY_H_
+using namespace std;
+
+typedef struct clientTimes {
+	int processId;
+	int clientTime;
+	int diff;
+	int offset;
+}clientData;
+
+int main(int argc, char *argv[])
+{
+	vector<spdlog::sink_ptr> sinks;
+	sinks.push_back(make_shared<spdlog::sinks::stdout_color_sink_mt>());
+	auto combined_logger = std::make_shared<spdlog::logger>("Server", begin(sinks), end(sinks));
+	//set log level
+	combined_logger -> set_level(spdlog::level::info);
+
+	//set logging pattern
+	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Process - %P] [%l] %v");
+	spdlog::register_logger(combined_logger);
+
+	int rank, i, size, coordinator, lastLine;
+	char line[500][5], timeString[5];
+	int min, dMin, cMin, diffMin, pMin[500], clientTime, iFlag[500], sumIFlags, temp1;
+	int avgTime, adjMin, temp, coo_time, slave_time;
+
+	MPI_Status status;
+
+	MPI_Init(&argc, &argv); // Initializing MPI
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank); // to know the rank of each process
+	MPI_Comm_size(MPI_COMM_WORLD, &size); // to know the total number of processes
+
+
+	srand(time(NULL));
+	coordinator = 0;
+	clientData *data[size - 1];
+	combined_logger -> info("Cordinator is: {}",coordinator);
+	for (int i=0;i<size;i++){
+		data[i] =(clientData *) malloc(sizeof(clientData));
+		data[i] -> processId = i;
+	}
+
+	if(rank == coordinator) // coordinator process
+	{
+		coo_time = rand() % 100;
+		data[coordinator] -> clientTime = coo_time;
+		data[coordinator] -> diff = 0;
+		combined_logger->info("Coordinator process is sending time {}",coo_time);
+		for(int i=0; i<size; i++)
+		{
+			if (i == coordinator)
+				continue;
+			MPI_Send(&coo_time, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+		}
+
+		for(int i=0; i<size-1; i++){
+			clientTime = 0;
+			MPI_Recv(&clientTime,  1,  MPI_INT,  MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+			data[status.MPI_SOURCE] -> clientTime = clientTime;
+			data[status.MPI_SOURCE] -> diff = clientTime - coo_time;
+			combined_logger->info("Cordinator {} has received time {} from client {}",coordinator,clientTime, status.MPI_SOURCE);
+		}
+
+		avgTime = 0;
+		int sumOfTime = 0;
+		for(int i=0;i<size;i++){
+			sumOfTime += data[i] -> diff;
+		}
+		avgTime = sumOfTime / size; // average value
+		combined_logger->info("Time differential average is {}",avgTime);
+		data[coordinator] -> offset = avgTime - data[coordinator] ->  diff;// adjust coordinator time value
+		data[coordinator] -> clientTime = coo_time + data[coordinator] -> offset;
+		combined_logger -> info ("coordinator {} set his time to {}",coordinator, data[coordinator] -> clientTime);
+		for(i=0; i<size; i++)
+			if(i != coordinator)
+			{
+				adjMin = avgTime - data[i] -> diff; // adjust time to be adjusted for each process
+				combined_logger->info("Coordinator process is sending the clock adjustment value of {} to process {}",adjMin,i);
+				MPI_Send(&adjMin, 1, MPI_INT, i, 0, MPI_COMM_WORLD); // send time to be adjusted to respective processes
+			}
+	}
+	else
+	{
+		MPI_Recv(&coo_time, 1, MPI_INT, coordinator, 0, MPI_COMM_WORLD, &status); // receive time to be adjusted from coordinator
+		combined_logger->info("Process {} has received time {}",rank,coo_time);
+		srand(time(NULL) + rank);
+		slave_time = rand() % 100;
+		combined_logger->info("Process {} is sending time differential value of {} to process {}",rank,slave_time,coordinator);
+		MPI_Send(&diffMin, 1, MPI_INT, coordinator, 0, MPI_COMM_WORLD); // send slave time to coordinator
+		MPI_Recv(&adjMin, 1, MPI_INT, coordinator, 0, MPI_COMM_WORLD, &status); // receive time to be adjusted from coordinator
+		combined_logger->info("Process {} has received the clock adjustment value of {}",rank,adjMin);
+		slave_time += adjMin;
+		combined_logger->info("Process {} has adjusted clock to {}",rank,slave_time);
+	}
+
+	MPI_Finalize();
+	return 1;
+}
+
+#endif /* CLOCK_BERKELEY_H_ */

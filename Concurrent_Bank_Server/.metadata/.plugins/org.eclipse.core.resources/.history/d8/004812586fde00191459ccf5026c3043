@@ -1,0 +1,21 @@
+/*
+ * constants.h
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+#ifndef CONSTANTS_H_
+#define CONSTANTS_H_
+
+
+#define THREADS_COUNT 10
+#define INTREST_RATE 6
+#define INTREST_SERVICE_SCHEDULE 2*60		//run each 2mins
+#define CLIENT_SERVICE_SCHEDULE 2
+#define DEFAULT_SERVER_PORT 8080
+
+std::string SERVER_LOGGER("Server")
+
+
+#endif /* CONSTANTS_H_ */

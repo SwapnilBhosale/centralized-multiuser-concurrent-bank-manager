@@ -1,0 +1,4 @@
+Building in: /home/lilbase/eclipse-workspace/Project2_bhosale/build/default
+make -f ../../Makefile
+make: *** No rule to make target '*.cpp', needed by 'Berkeley'.  Stop.
+Build complete (1 errors, 0 warnings): /home/lilbase/eclipse-workspace/Project2_bhosale/build/default

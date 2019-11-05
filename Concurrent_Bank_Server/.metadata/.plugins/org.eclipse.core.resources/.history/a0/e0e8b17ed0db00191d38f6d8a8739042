@@ -1,0 +1,18 @@
+/*
+ * Transaction.h
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_TRANSACTION_H_
+#define SERVER_TRANSACTION_H_
+
+class Transaction {
+private:
+	std::string name;
+}
+
+
+
+#endif /* SERVER_TRANSACTION_H_ */

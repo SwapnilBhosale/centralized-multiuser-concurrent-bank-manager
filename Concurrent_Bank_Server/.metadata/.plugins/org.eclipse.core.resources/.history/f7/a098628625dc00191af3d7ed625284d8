@@ -1,0 +1,8 @@
+OBJECTS = client.o sevrer.o
+
+compile:	${OBJECTS}}
+
+
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

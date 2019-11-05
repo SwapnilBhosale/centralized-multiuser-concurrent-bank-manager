@@ -1,0 +1,21 @@
+/*
+ * Observer.cpp
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: lilbase
+ */
+#include "ObserverPattern.h"
+
+#include <iostream>
+ObserverPattern * ObserverPattern::instance = NULL;
+
+ObserverPattern * ObserverPattern::get_instance() {
+	if(instance == NULL)
+		instance = new ObserverPattern;
+	return instance;
+}
+
+void ObserverPattern::add_observant(Observer *ob){
+	vect.push_back(ob);
+}
+

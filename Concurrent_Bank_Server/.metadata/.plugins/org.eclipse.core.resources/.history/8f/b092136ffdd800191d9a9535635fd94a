@@ -1,0 +1,18 @@
+/*
+ * ServerSock.cpp
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#include "ServerSock.h"
+
+ServerSock::ServerSock() {
+	// TODO Auto-generated constructor stub
+
+}
+
+ServerSock::~ServerSock() {
+	// TODO Auto-generated destructor stub
+}
+

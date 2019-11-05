@@ -1,0 +1,30 @@
+/*
+ * Server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_H_
+#define SERVER_H_
+#include <pthread.h>
+#include "ServerSock.h"
+
+
+#define THREADS_COUNT 100
+
+typedef void * (*THREADFUNCPTR)(void *);
+
+class Server {
+public:
+	Server();
+	virtual ~Server();
+
+	void print_stats(int signal_number);
+	void create_thread(int index);
+private:
+	pthread_t threads[THREADS_COUNT];
+	pthread_mutex_t mlock =  PTHREAD_MUTEX_INITIALIZER;
+};
+
+#endif /* SERVER_H_ */

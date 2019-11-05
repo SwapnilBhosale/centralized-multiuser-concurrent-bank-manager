@@ -1,0 +1,19 @@
+OBJ_FILES  = server.o
+BUILD_DIR = ./build
+CC= g++
+compile:	${OBJECTS}
+
+all: BankServer
+
+compile: ${OBJ_FILES}
+	${CC} -lpthread -o bin/Server BankServer.o ServerSock.o ObserverPattern.o
+
+server.o: BankServer.cpp  BankServer.h ServerSock.cpp ServerSock.h ObserverPattern.cpp ObserverPattern.h util.h Observer.h
+	cd server && \
+	${CC}  -std=c++11  -lpthread -c BankServer.cpp ServerSock.cpp ObserverPattern.cpp
+	
+
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client

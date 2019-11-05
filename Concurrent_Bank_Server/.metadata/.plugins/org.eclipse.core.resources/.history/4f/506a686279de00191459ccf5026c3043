@@ -1,0 +1,32 @@
+CXX	:= g++
+OBJECTS := Server.o Client.o
+OBJECTS	:= BankServer.o ServerSock.o ObserverPattern.o Client.o
+SERVER_OBJECTS := BankServer.o ServerSock.o ObserverPattern.o Client.o
+CLIENT_OBJECTS := client.o
+INC := -I ./include/
+CFLAGS := -g -lpthread -std=c++11 -c
+BIN_DIR := bin
+SERVER_DIR := server
+CLIENT_DIR := client
+
+
+compile: ${OBJECTS}
+	${CXX} -g -o Server ${OBJECTS} -lpthread 
+	${CXX} -g -o Server ${OBJECTS} -lpthread 
+	
+Server.o: ${SERVER_OBJECTS}
+	${CXX} ${INC} -${CFLAGS} -o $@ $^
+	
+Client.o: ${CLIENT_OBJECTS}
+	${CXX}  -o $@ $^
+	 
+
+$(BIN_DIR)/%.o: ${SERVER_DIR}/%.c
+    $(CXX) -c ${INC} -${CFLAGS} -o$@ $<
+
+	
+
+clean:
+	rm -fr server/*.o bin/Server client/*.o bin/client
+
+.PHONY: all clean

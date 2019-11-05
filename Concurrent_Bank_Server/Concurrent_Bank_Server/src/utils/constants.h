@@ -1,0 +1,28 @@
+/*
+ * constants.h
+ *
+ * This header file defines all the constants used in the projects
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: Swapnil Bhosale
+ */
+
+#ifndef UTILS_CONSTANTS_H_
+#define UTILS_CONSTANTS_H_
+
+
+#define THREADS_COUNT 100
+#define INTREST_RATE 6
+#define INTREST_SERVICE_SCHEDULE 60*60		//run each 2mins
+#define CLIENT_SERVICE_SCHEDULE 2
+#define DEFAULT_SERVER_PORT 8080
+#define CONCURRENCY 10
+#define REQUESTS 20000
+#define THREAD_MAX 5000
+#define HOST "127.0.0.1"
+#define PORT 8080
+#define FILE "./src/Transactions.txt"
+#define SERVER_FILE "./src/Records.txt"
+
+
+#endif /* UTILS_CONSTANTS_H_ */

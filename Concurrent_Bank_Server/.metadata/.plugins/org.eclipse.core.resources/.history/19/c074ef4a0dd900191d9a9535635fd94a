@@ -1,0 +1,19 @@
+/*
+ * Server.h
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#ifndef SERVER_H_
+#define SERVER_H_
+
+class Server {
+public:
+	Server();
+	virtual ~Server();
+
+	void print_stats(int signal_number);
+};
+
+#endif /* SERVER_H_ */

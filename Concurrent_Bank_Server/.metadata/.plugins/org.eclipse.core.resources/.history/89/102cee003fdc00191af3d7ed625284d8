@@ -1,0 +1,14 @@
+/*
+ * client.cpp
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+
+#include "client.h"
+
+void Client::create_client_Service() {
+	pthread_create(&intrest_service__thread, NULL, &Client::intrest_service_invoke_helper, this);
+}
+

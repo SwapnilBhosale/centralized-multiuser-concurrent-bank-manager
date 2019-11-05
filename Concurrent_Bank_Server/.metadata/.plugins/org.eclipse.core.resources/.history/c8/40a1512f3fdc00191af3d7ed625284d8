@@ -1,0 +1,27 @@
+/*
+ * client.cpp
+ *
+ *  Created on: Sep 21, 2019
+ *      Author: lilbase
+ */
+
+
+#include "client.h"
+
+void Client::create_client_Service() {
+	pthread_create(&client_service_thread, NULL, &Client::intrest_service_invoke_helper, this);
+}
+
+int main(int argc, char **argv) {
+	Client client;
+	//std::signal(SIGINT, server.print_stats);
+	//signal(SIGPIPE, server.print_stats);
+	server.init();
+	client.create_client_Service();
+	(void) pthread_join(server.get_intrest_Service_thread(), NULL);
+	//for (;;)
+		//  pause();
+
+}
+
+

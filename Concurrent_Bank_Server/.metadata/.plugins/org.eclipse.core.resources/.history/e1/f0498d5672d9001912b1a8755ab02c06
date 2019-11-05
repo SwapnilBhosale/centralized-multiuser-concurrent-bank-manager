@@ -1,0 +1,53 @@
+/*
+ * ServerSock.cpp
+ *
+ *  Created on: Sep 16, 2019
+ *      Author: lilbase
+ */
+
+#include "ServerSock.h"
+
+ServerSock::ServerSock() {
+	this->port = DEFAULT_SERVER_PORT;
+	sockfd = 0;
+
+}
+
+ServerSock::ServerSock(unsigned int port) {
+	this->port = port;
+	sockfd = 0 ;
+}
+
+ServerSock::~ServerSock() {
+}
+
+int ServerSock::init() {
+	int sock;
+	struct sockaddr_in srv_addr;
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (sock == -1)
+		std::cout<< "error : socket()";
+
+	int enable = 1;
+	if (setsockopt(sock,
+				   SOL_SOCKET, SO_REUSEADDR,
+				   &enable, sizeof(int)) < 0)
+		std::cout<< "setsockopt(SO_REUSEADDR)";
+
+	bzero(&srv_addr, sizeof(srv_addr));
+	srv_addr.sin_family = AF_INET;
+	srv_addr.sin_port = htons(port);
+	srv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	/* We bind to a port and turn this socket into a listening
+	 * socket.
+	 * */
+	if (bind(sock, (const struct sockaddr *)&srv_addr, sizeof(srv_addr)) < 0)
+		std::cout<<"Error:bind()";
+
+	if (listen(sock, 10) < 0)
+		std::cout<<"error: listen()";
+
+	return (sock);
+}
+
