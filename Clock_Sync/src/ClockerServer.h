@@ -40,15 +40,14 @@ private:
 	int pointToPointSock;
 	long int timeDrift;
 	std::shared_ptr<spdlog::logger> _logger;
-	void enterServerLoop();
 	void sendCordinatorClock();
 	struct sockaddr_in srv_addr;
 	struct sockaddr_in rcv_addr;
 	struct sockaddr_in p2p_addr;
-	timeval receiveServerTime();
+	void receiveServerTime();
 	void printDate(timeval time);
 	struct timeval time;
-	void calculateAndSendDrift(timeval t);
+	void calculateAndSendDrift();
 	void sendCordinatorPortForP2P();
 	void getCooPort();
 	int cooPort;

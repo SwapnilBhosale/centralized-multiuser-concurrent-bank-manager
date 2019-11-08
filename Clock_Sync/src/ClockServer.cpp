@@ -21,33 +21,13 @@ ClockServer::ClockServer(int port, bool isCordinator, long timeDrift){
 	bzero(&rcv_addr, sizeof(rcv_addr));
 	bzero(&p2p_addr, sizeof(p2p_addr));
 	gettimeofday(&time, NULL);
-	this -> time.tv_sec = this -> time.tv_sec + timeDrift;
 	this -> cooPort = 0;
-}
-
-void ClockServer::enterServerLoop() {
-	struct sockaddr_in client_addr;
-	socklen_t client_addr_len = sizeof(client_addr);
-	while (1)
-	{
-		int client_socket = accept(
-				multicastSock,
-				(struct sockaddr *)&client_addr,
-				&client_addr_len);
-		//std::cout<<"after accepting the client connection, thread id:"<<pthread_self()<<std::endl;
-		if (client_socket < 0) {
-			_logger -> error("Error: accept()");
-		}
-	}
 }
 
 void ClockServer::init(){
 
 	multicastSock = socket(AF_INET, SOCK_DGRAM, 0);
 	int enable = 1;
-
-
-
 
 	if (setsockopt(multicastSock,
 			SOL_SOCKET, SO_REUSEADDR,
@@ -103,19 +83,19 @@ void ClockServer::init(){
 		exit(1);
 	}
 
-
-
-
 	if (isCordinator){
 		sendCordinatorClock();
 		sendCordinatorPortForP2P();
 		calcualteTheAverageTime();
+
 	}else{
-		timeval t = receiveServerTime();
+		receiveServerTime();
 		getCooPort();
-		calculateAndSendDrift(t);
+		calculateAndSendDrift();
 		receiveUpdatedClockFromCoo();
 	}
+
+
 
 	_logger -> info("server listening on port {}", port);
 }
@@ -131,26 +111,23 @@ void ClockServer::getCooPort(){
 void ClockServer::sendCordinatorPortForP2P(){
 	struct sockaddr_in coo_port;
 	socklen_t sa_len = sizeof(coo_port);
+	getsockname(pointToPointSock,(struct sockaddr *)&coo_port,&sa_len);
 	int master_port = (int)ntohs(coo_port.sin_port);
 	char buffer[256];
 	sprintf(buffer, "%d", master_port);
 	_logger -> info("In Coo port is {}",buffer);
-	getsockname(pointToPointSock,(struct sockaddr *)&coo_port,&sa_len);
-	sendto(multicastSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &rcv_addr, sizeof(rcv_addr));
+	sendto(multicastSock, buffer, strlen(buffer), 0, (struct sockaddr *) &rcv_addr, sizeof(rcv_addr));
 }
 
-void ClockServer::calculateAndSendDrift(timeval t){
-	timeval driftTime;
-	driftTime.tv_sec = time.tv_sec - t.tv_sec;
-	driftTime.tv_usec = time.tv_usec - t.tv_usec;
+void ClockServer::calculateAndSendDrift(){
+	_logger -> info("Server port is : {} ",cooPort);
 	p2p_addr.sin_port = htons(cooPort);
+	char buffer[256];
+	sprintf(buffer, "%ld", timeDrift);
+	int tp = sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
 
-	string epoch(to_string(driftTime.tv_sec));
-	epoch.append(" ");
-	epoch.append(to_string(driftTime.tv_usec));
-	sendto(pointToPointSock, epoch.c_str(), epoch.length(), 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
-	_logger -> info("send diff");
-	printDate(driftTime);
+	_logger -> info("send diff : {} {}",tp, buffer);
+	//printDate(driftTime);
 	struct timeval timeout;
 	timeout.tv_sec = 5;
 	timeout.tv_usec = 0;
@@ -158,21 +135,26 @@ void ClockServer::calculateAndSendDrift(timeval t){
 	{
 		_logger -> error("Error in timeout!");
 	}
-
 }
 
 void ClockServer::calcualteTheAverageTime(){
+	sleep(5);
 	int average = 0;
 	char buffer[256];
 	int sum = 0;
 	int counter = 0;
-	socklen_t addr1 = sizeof(p2p_addr);
+	//p2p_addr.sin_port = htons(INADDR_ANY);
+	//p2p_addr.sin_addr.s_addr = INADDR_ANY;
 
-	_logger -> info ("received from clients {}",counter);
-	while((recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1)) > 0)
+	struct sockaddr_in from;
+	socklen_t addr1 = sizeof(p2p_addr);
+	_logger -> info ("received from clients {} {}",counter,pointToPointSock);
+	while((recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1)) >0)
 	{
+		_logger -> info("received data: {}",buffer);
 		sum = sum + atoi(buffer);
 		counter++;
+		break;
 	}
 	_logger -> info ("received from clients {}",counter);
 	average = sum/(counter + 1);
@@ -180,7 +162,9 @@ void ClockServer::calcualteTheAverageTime(){
 	_logger -> info("Total number of processes: {}", (counter + 1));
 	time.tv_sec = time.tv_sec + average;
 	printDate(time);
-	sendCordinatorClock();
+	char buff[256];
+	sprintf(buff, "%d", average);
+	sendto(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
 }
 
 void ClockServer::receiveUpdatedClockFromCoo(){
@@ -189,27 +173,19 @@ void ClockServer::receiveUpdatedClockFromCoo(){
 	socklen_t addr = sizeof(rcv_addr);
 	recvfrom(multicastSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &rcv_addr, &addr);
 	timeval newTime;
-	std::string arr[2];
-	splitString(arr, buffer);
-	newTime.tv_sec = time.tv_sec + std::atol(arr[0].c_str());
-	newTime.tv_usec = time.tv_usec + std::atol(arr[1].c_str());
-
+	long int newDrift = atol(buffer) - timeDrift;
+	newTime.tv_sec = time.tv_sec + newDrift;
 	printDate(newTime);
 
 }
 
-timeval ClockServer::receiveServerTime(){
+void ClockServer::receiveServerTime(){
 	char message[256];
 	socklen_t addr = sizeof(rcv_addr);
 	int messageLength = recvfrom(multicastSock, message, sizeof(message), 0, (struct sockaddr *) &rcv_addr, &addr);
 	timeval newTime;
-	std::string arr[2];
-	splitString(arr, message);
-	newTime.tv_sec = std::atol(arr[0].c_str());
-	newTime.tv_usec = std::atol(arr[1].c_str());
-	printDate(newTime);
-	return newTime;
-
+	time.tv_sec = atol(message) + this -> timeDrift;
+	printDate(time);
 }
 
 void ClockServer::printDate(timeval time){
@@ -220,15 +196,14 @@ void ClockServer::printDate(timeval time){
 	nowtime = time.tv_sec;
 	nowtm = localtime(&nowtime);
 	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
-	snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, time.tv_usec);
+	snprintf(buf, sizeof buf, "%s", tmbuf);
 	_logger ->info("Clock value is {}",buf);
 }
 
 void ClockServer::sendCordinatorClock(){
 	string epoch(to_string(time.tv_sec));
-	epoch.append(" ");
-	epoch.append(to_string(time.tv_usec));
 	sendto(multicastSock, epoch.c_str(), epoch.length(), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
+	printDate(time);
 }
 
 
