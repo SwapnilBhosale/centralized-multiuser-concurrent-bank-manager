@@ -1,25 +1,28 @@
-PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ 
+FLAGS = -std=c++11 -lpthread
+LDFLAGS = -lpthread
 
-OBJS = Clock_Sync.o
+BERKELEY_TARGET = Berkeley
+CLIENT_TARGET = Client
+SOURCES = $(shell echo src/server/*.cpp) $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
 
-ifeq ($(BUILD_MODE),debug)
-	CFLAGS += -g
-else ifeq ($(BUILD_MODE),run)
-	CFLAGS += -O2
-else
-	$(error Build mode $(BUILD_MODE) not supported by this Makefile)
-endif
+LOG_LIBRARY_HEADERS = include/
 
-all:	Clock_Sync
+CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
+BERKELEY_SRC = $(shell echo src/*.cpp) $(shell echo src/util/*.cpp)
 
-Clock_Sync:	$(OBJS)
-	$(CXX) -o $@ $^
+OBJECTS = $(CLIENT_SRC:.cpp=.o)
 
-%.o:	$(PROJECT_ROOT)%.cpp
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
-
-%.o:	$(PROJECT_ROOT)%.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+compile: ${BERKELEY_TARGET} ${CLIENT_TARGET}
 
 clean:
-	rm -fr Clock_Sync $(OBJS)
+	rm -f src/*.o src/util/*.o $(BERKELEY_TARGET) $(CLIENT_TARGET)
+
+%.o : %.cpp
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@
+
+${BERKELEY_TARGET}: $(BERKELEY_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(BERKELEY_SRC) -o $(BERKELEY_TARGET) ${LDFLAGS}
+	
+${CLIENT_TARGET}: $(CLIENT_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CLIENT_SRC) -o $(CLIENT_TARGET) ${LDFLAGS}
