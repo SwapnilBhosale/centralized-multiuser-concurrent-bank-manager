@@ -128,13 +128,7 @@ void ClockServer::calculateAndSendDrift(){
 
 	_logger -> info("send diff : {} {}",tp, buffer);
 	//printDate(driftTime);
-	struct timeval timeout;
-	timeout.tv_sec = 5;
-	timeout.tv_usec = 0;
-	if(setsockopt(pointToPointSock,SOL_SOCKET,SO_RCVTIMEO,(char *)&timeout,sizeof(timeout))<0)
-	{
-		_logger -> error("Error in timeout!");
-	}
+
 }
 
 void ClockServer::calcualteTheAverageTime(){
@@ -149,12 +143,23 @@ void ClockServer::calcualteTheAverageTime(){
 	struct sockaddr_in from;
 	socklen_t addr1 = sizeof(p2p_addr);
 	_logger -> info ("received from clients {} {}",counter,pointToPointSock);
-	while((recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1)) >0)
+	fd_set fds;
+	FD_ZERO(&fds);
+	FD_SET(pointToPointSock, &fds);
+	struct timeval timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
+	if(setsockopt(pointToPointSock,SOL_SOCKET,SO_RCVTIMEO,(char *)&timeout,sizeof(timeout))<0)
 	{
+		_logger -> error("Error in timeout!");
+	}
+	int ret;
+	while((ret = select(pointToPointSock+1, &fds, NULL, NULL, &timeout)) > 0)
+	{
+		recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1);
 		_logger -> info("received data: {}",buffer);
 		sum = sum + atoi(buffer);
 		counter++;
-		break;
 	}
 	_logger -> info ("received from clients {}",counter);
 	average = sum/(counter + 1);
