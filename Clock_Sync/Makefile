@@ -3,20 +3,18 @@ FLAGS = -std=c++11 -lpthread
 LDFLAGS = -lpthread
 
 BERKELEY_TARGET = Berkeley
-CLIENT_TARGET = Client
-SOURCES = $(shell echo src/server/*.cpp) $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
+CAUSAL_TARGET = Berkeley
 
 LOG_LIBRARY_HEADERS = include/
 
-CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
-BERKELEY_SRC = $(shell echo src/*.cpp) $(shell echo src/util/*.cpp)
+CAUSAL_SRC = $(shell echo src/CausalOrdering.cpp) $(shell echo src/util/*.cpp)
+BERKELEY_SRC = $(shell echo src/ClockServer.cpp) $(shell echo src/util/*.cpp)
 
-OBJECTS = $(CLIENT_SRC:.cpp=.o)
 
-compile: ${BERKELEY_TARGET} ${CLIENT_TARGET}
+compile: ${BERKELEY_TARGET} ${CAUSAL_TARGET}
 
 clean:
-	rm -f src/*.o src/util/*.o $(BERKELEY_TARGET) $(CLIENT_TARGET)
+	rm -f src/*.o src/util/*.o $(BERKELEY_TARGET) $(CAUSAL_TARGET)
 
 %.o : %.cpp
 	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@
@@ -24,5 +22,5 @@ clean:
 ${BERKELEY_TARGET}: $(BERKELEY_SRC)
 	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(BERKELEY_SRC) -o $(BERKELEY_TARGET) ${LDFLAGS}
 	
-${CLIENT_TARGET}: $(CLIENT_SRC)
-	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CLIENT_SRC) -o $(CLIENT_TARGET) ${LDFLAGS}
+${CAUSAL_TARGET}: $(CAUSAL_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CAUSAL_SRC) -o $(CAUSAL_TARGET) ${LDFLAGS}
