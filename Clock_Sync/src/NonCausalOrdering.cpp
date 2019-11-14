@@ -13,7 +13,7 @@ CausalOrdering::CausalOrdering(int port, int id, char * msg){
 	this -> pointToPointSock = 0;
 	this -> senderThread = NULL;
 	this -> recvThread = NULL;
-	this -> _logger = spdlog::get(CAUSAL);
+	this -> _logger = spdlog::get(NON_CAUSAL);
 	this -> port = port;
 	this -> id = id;
 	this -> msg = msg;
@@ -37,7 +37,7 @@ void CausalOrdering::init(){
 	recvAddr.sin_addr.s_addr =htonl(INADDR_ANY);
 	recvAddr.sin_port = htons(port);
 
-	this -> process = new Processes(id, msg, multicastSock, srvAddr, recvAddr, true);
+	this -> process = new Processes(id, msg, multicastSock, srvAddr, recvAddr, false);
 
 	if (bind(multicastSock, (const struct sockaddr *)&recvAddr, sizeof(recvAddr)) < 0){
 		_logger -> error("Error in bind()");
@@ -159,11 +159,11 @@ int main(int argc, char **argv) {
 	}
 	pid_t pid = getpid();
 
-	string logFileName = string("./logs/").append(CAUSAL).append("_").append(to_string(pid)).append(".txt");
+	string logFileName = string("./logs/").append(NON_CAUSAL).append("_").append(to_string(pid)).append(".txt");
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFileName,1024 * 1024 * 50, 10, true));
-	auto combined_logger = std::make_shared<spdlog::logger>(CAUSAL, begin(sinks), end(sinks));
+	auto combined_logger = std::make_shared<spdlog::logger>(NON_CAUSAL, begin(sinks), end(sinks));
 	combined_logger -> set_level(spdlog::level::info);
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);

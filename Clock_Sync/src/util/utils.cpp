@@ -11,6 +11,9 @@
 #define PORT 8080
 #define HOST "224.0.0.0"
 #define TIME_DRIFT 10
+#define SLEEP_CONSTANT 2
+#define CAUSAL "CausalOrdering"
+#define NON_CAUSAL "NonCausalOrdering"
 #include <iostream>
 #include <string>
 #include <sstream>
