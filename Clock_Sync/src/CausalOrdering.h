@@ -67,7 +67,7 @@ private:
 	char *msg;
 	void * handleSenderService();
 	void * handleRecvService();
-	Process *process;
+	Processes *process;
 };
 
 

@@ -6,23 +6,21 @@
  */
 
 #include "CausalOrdering.h"
-#include "Process.h"
+
 
 CausalOrdering::CausalOrdering(int port, int id, char * msg){
-	this -> multicastSock = 0;
+	this -> multicastSock = socket(AF_INET, SOCK_DGRAM, 0);;
 	this -> pointToPointSock = 0;
 	this -> senderThread = NULL;
 	this -> recvThread = NULL;
 	this -> _logger = spdlog::get("CausalOrdering");
-	this->port = port;
+	this -> port = port;
 	this -> id = id;
 	this -> msg = msg;
-	this -> process = Process(id, msg, multicastSock, srvAddr, recvAddr);
+	this -> process = NULL;
 }
 
 void CausalOrdering::init(){
-	multicastSock = socket(AF_INET, SOCK_DGRAM, 0);
-
 	int enable = 1;
 
 	if (setsockopt(multicastSock,
@@ -39,6 +37,7 @@ void CausalOrdering::init(){
 	recvAddr.sin_addr.s_addr =htonl(INADDR_ANY);
 	recvAddr.sin_port = htons(port);
 
+	this -> process = new Processes(id, msg, multicastSock, srvAddr, recvAddr, true);
 
 	if (bind(multicastSock, (const struct sockaddr *)&recvAddr, sizeof(recvAddr)) < 0){
 		_logger -> error("Error in bind()");
@@ -136,7 +135,7 @@ int main(int argc, char **argv) {
 	bool isCordinator = false;
 	int id;
 	char * msg;
-	while ((c = getopt (argc, argv, ":p:t:id:")) != -1) {
+	while ((c = getopt (argc, argv, ":p:i:m:")) != -1) {
 		switch(c) {
 		case 'p' :
 			p = atoi(optarg);
@@ -146,7 +145,7 @@ int main(int argc, char **argv) {
 		case 'm' :
 			msg = optarg;
 			break;
-		case 'id' :
+		case 'i' :
 			id = atoi(optarg);
 			break;
 		case ':':
@@ -160,11 +159,11 @@ int main(int argc, char **argv) {
 	}
 	pid_t pid = getpid();
 
-	string logFileName = string("./logs/CausalOrdering").append("_").append(to_string(pid)).append(".txt");
+	string logFileName = string("./logs/").append(CAUSAL).append("_").append(to_string(pid)).append(".txt");
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFileName,1024 * 1024 * 50, 10, true));
-	auto combined_logger = std::make_shared<spdlog::logger>("CausalOrdering", begin(sinks), end(sinks));
+	auto combined_logger = std::make_shared<spdlog::logger>(CAUSAL, begin(sinks), end(sinks));
 	combined_logger -> set_level(spdlog::level::info);
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);

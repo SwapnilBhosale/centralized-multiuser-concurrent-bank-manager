@@ -24,17 +24,17 @@
 #include "../include/spdlog/sinks/rotating_file_sink.h"
 
 using namespace std;
-class Process{
+class Processes{
 
 public:
-	Process(int id, char *msg, int multicastSocket, struct sockaddr_in addr1, struct sockaddr_in addr2);
+	Processes(int id, char *msg, int multicastSocket, sockaddr_in addr1, sockaddr_in addr2, bool isCasual);
 	void sendMessage();
 	void receiveMessage();
 private:
 	int id;
 	int multicastSocket;
 	char * msg;
-	int vectorClok[] = {0, 0, 0, 0};
+	int vectorClok[4] = {0, 0, 0, 0};
 	int sendCnt;
 	int recvCnt;
 	std::shared_ptr<spdlog::logger> _logger;
@@ -42,6 +42,7 @@ private:
 	struct sockaddr_in recvAddr;
 	char *buff[100];
 	vector<string> v;
+	bool isCasual;
 };
 
 
