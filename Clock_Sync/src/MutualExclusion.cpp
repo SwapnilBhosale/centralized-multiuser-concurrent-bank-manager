@@ -90,16 +90,6 @@ void MutualExclusion::init(){
 	}
 
 	this -> ownPort = getOwnPort();
-	/*if (isCordinator){
-		sendCordinatorPortForP2P();
-		calcualteTheAverageTime();
-
-	}else{
-		receiveServerTime();
-		getCooPort();
-		calculateAndSendDrift();
-		receiveUpdatedClockFromCoo();
-	}*/
 	_logger -> info("Process {} is listening on own port {}",id, ownPort);
 }
 
@@ -109,103 +99,6 @@ int MutualExclusion::getOwnPort(){
 	getsockname(pointToPointSock,(struct sockaddr *)&coo_port,&sa_len);
 	int port = (int)ntohs(coo_port.sin_port);
 	return port;
-}
-
-void MutualExclusion::sendCordinatorPortForP2P(){
-	struct sockaddr_in coo_port;
-	socklen_t sa_len = sizeof(coo_port);
-	getsockname(pointToPointSock,(struct sockaddr *)&coo_port,&sa_len);
-	int master_port = (int)ntohs(coo_port.sin_port);
-	char buffer[256];
-	sprintf(buffer, "%d", master_port);
-	_logger -> info("In Coo port is {}",buffer);
-	sendto(multicastSock, buffer, strlen(buffer), 0, (struct sockaddr *) &rcv_addr, sizeof(rcv_addr));
-}
-
-/*void MutualExclusion::calculateAndSendDrift(){
-	_logger -> info("Server port is : {} ",cooPort);
-	p2p_addr.sin_port = htons(cooPort);
-	char buffer[256];
-	sprintf(buffer, "%ld", timeDrift);
-	int tp = sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
-
-	_logger -> info("send diff : {} {}",tp, buffer);
-	//printDate(driftTime);
-
-}*/
-
-void MutualExclusion::calcualteTheAverageTime(){
-	sleep(5);
-	int average = 0;
-	char buffer[256];
-	int sum = 0;
-	int counter = 0;
-	//p2p_addr.sin_port = htons(INADDR_ANY);
-	//p2p_addr.sin_addr.s_addr = INADDR_ANY;
-
-	struct sockaddr_in from;
-	socklen_t addr1 = sizeof(p2p_addr);
-	_logger -> info ("received from clients {} {}",counter,pointToPointSock);
-	fd_set fds;
-	FD_ZERO(&fds);
-	FD_SET(pointToPointSock, &fds);
-	struct timeval timeout;
-	timeout.tv_sec = 5;
-	timeout.tv_usec = 0;
-	if(setsockopt(pointToPointSock,SOL_SOCKET,SO_RCVTIMEO,(char *)&timeout,sizeof(timeout))<0)
-	{
-		_logger -> error("Error in timeout!");
-	}
-	int ret;
-	while((ret = select(pointToPointSock+1, &fds, NULL, NULL, &timeout)) > 0)
-	{
-		recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1);
-		_logger -> info("received data: {}",buffer);
-		sum = sum + atoi(buffer);
-		counter++;
-	}
-	_logger -> info ("received from clients {}",counter);
-	average = sum/(counter + 1);
-	_logger -> info("Average: {}", average);
-	_logger -> info("Total number of processes: {}", (counter + 1));
-	time.tv_sec = time.tv_sec + average;
-	printDate(time);
-	char buff[256];
-	sprintf(buff, "%d", average);
-	sendto(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
-}
-
-/*void MutualExclusion::receiveUpdatedClockFromCoo(){
-	_logger -> info("Waiting to receive clock from coo");
-	char buffer[256];
-	socklen_t addr = sizeof(rcv_addr);
-	recvfrom(multicastSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &rcv_addr, &addr);
-	timeval newTime;
-	long int newDrift = atol(buffer) - timeDrift;
-	newTime.tv_sec = time.tv_sec + newDrift;
-	printDate(newTime);
-
-}
-
-void MutualExclusion::receiveServerTime(){
-	char message[256];
-	socklen_t addr = sizeof(rcv_addr);
-	int messageLength = recvfrom(multicastSock, message, sizeof(message), 0, (struct sockaddr *) &rcv_addr, &addr);
-	timeval newTime;
-	time.tv_sec = atol(message) + this -> timeDrift;
-	printDate(time);
-}*/
-
-void MutualExclusion::printDate(timeval time){
-	time_t nowtime;
-	struct tm *nowtm;
-	char tmbuf[64], buf[64];
-
-	nowtime = time.tv_sec;
-	nowtm = localtime(&nowtime);
-	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
-	snprintf(buf, sizeof buf, "%s", tmbuf);
-	_logger ->info("Clock value is {}",buf);
 }
 
 void MutualExclusion::createSendAndRecvThread() {

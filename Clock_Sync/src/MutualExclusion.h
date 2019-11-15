@@ -50,6 +50,7 @@ public:
 	static void *recvServiceHelper(void *context){
 		return ((MutualExclusion *)context)->handleRecvService();
 	}
+	void createSendAndRecvThread();
 private:
 	int port;
 	int multicastSock;
@@ -71,7 +72,6 @@ private:
 	vector<string> v;
 	pthread_t senderThread;
 	pthread_t recvThread;
-	void createSendAndRecvThread();
 	void * handleSenderService();
 	void * handleRecvService();
 	bool isDoneUpdatingFile;

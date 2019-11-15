@@ -5,7 +5,7 @@ LDFLAGS = -lpthread
 BERKELEY_TARGET = Berkeley
 CAUSAL_TARGET = Causal
 NON_CAUSAL_TARGET = NonCausal
-DIST_ME_TARGET = NonCausal
+DIST_ME_TARGET = DistributedME
 
 LOG_LIBRARY_HEADERS = include/
 
