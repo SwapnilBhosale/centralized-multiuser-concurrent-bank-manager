@@ -22,6 +22,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #include "../include/spdlog/spdlog.h"
 #include "../include/spdlog/sinks/stdout_color_sinks.h"
@@ -31,8 +32,24 @@ using namespace std;
 
 class MutualExclusion {
 public:
-	MutualExclusion(int id);
+	MutualExclusion(int id, int n);
 	void init();
+	pthread_t getSenderThread(){
+		return senderThread;
+	}
+
+	pthread_t getRecvThread(){
+		return recvThread;
+	}
+
+	static void *senderServiceHelper(void *context){
+		return ((MutualExclusion *)context)->handleSenderService();
+	}
+
+
+	static void *recvServiceHelper(void *context){
+		return ((MutualExclusion *)context)->handleRecvService();
+	}
 private:
 	int port;
 	int multicastSock;
@@ -51,8 +68,17 @@ private:
 	int ownPort;
 	void calcualteTheAverageTime();
 	void receiveUpdatedClockFromCoo();
-	void readAndWriteCounterFile();
 	vector<string> v;
+	pthread_t senderThread;
+	pthread_t recvThread;
+	void createSendAndRecvThread();
+	void * handleSenderService();
+	void * handleRecvService();
+	bool isDoneUpdatingFile;
+	int numOfProcesses;
+	bool hasSentRequest;
+	string sentTimestamp;
+	bool isUpdatingFile;
 };
 
 

@@ -14,6 +14,8 @@
 #define SLEEP_CONSTANT 2
 #define CAUSAL "CausalOrdering"
 #define NON_CAUSAL "NonCausalOrdering"
+#define DISTRIBUTED_ME "DistributedME"
+#define OK "OK"
 #include <iostream>
 #include <string>
 #include <sstream>
