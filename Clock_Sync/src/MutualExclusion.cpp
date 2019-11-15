@@ -26,7 +26,7 @@ MutualExclusion::MutualExclusion(int id, int n){
 	this -> isDoneUpdatingFile = false;
 	this -> numOfProcesses = n;
 	this -> hasSentRequest = false;
-	this -> sentTimestamp = "";
+	this -> sentTimestamp = 9999999999;
 	this -> isUpdatingFile = false;
 }
 
@@ -118,26 +118,42 @@ void MutualExclusion::createSendAndRecvThread() {
 }
 
 void *MutualExclusion::handleSenderService(){
+	sleep(5);
 	gettimeofday(&time, NULL);
-	sentTimestamp = to_string(time.tv_sec);
+	//_logger -> info("Before sending");
+	sentTimestamp = time.tv_sec;
+	//_logger -> info("After sending");
 	char buff[256];
-	sprintf(buff,"%d:%d:%d:%s", 0, id, ownPort, sentTimestamp);
-	sendto(multicastSock, sentTimestamp.c_str(), sentTimestamp.length(), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
+	sprintf(buff,"%d:%d:%d:%ld", 0, id, ownPort, sentTimestamp);
+	//_logger -> info("After sending");
+	sendto(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
+	_logger -> info("Sent request for updating the file: {}",buff);
 	hasSentRequest = true;
 }
 
 void *MutualExclusion::handleRecvService(){
+	fd_set readfds;
 	int replyCount = 0;
+
+	//_logger -> info("Inside receive");
 	while (true) {
-		if(!isDoneUpdatingFile && replyCount == numOfProcesses - 1) {
+		FD_ZERO(&readfds);
+
+		int max_sd = multicastSock > pointToPointSock ? multicastSock : pointToPointSock;
+		FD_SET(multicastSock, &readfds);
+		FD_SET(pointToPointSock, &readfds);
+		//_logger -> info("isDoneUpdatingFile: {}, replyCount: {}, (numOfProcesses - 1): {}",isDoneUpdatingFile,replyCount,(numOfProcesses - 1));
+		if(!isDoneUpdatingFile && replyCount == (numOfProcesses - 1)) {
 			FILE *f = fopen("./counter.txt","r+");
 			char buffer[256];
 			fgets(buffer,sizeof(buffer),f);
 			int val = atoi(buffer);
-			_logger -> info("Value in the file is: {}",val);
+			_logger -> info("****** Value in the file is: {}",val);
 			val += 1;
+			fclose(f);
+			f = fopen("./counter.txt","w+");
 			fprintf(f, "%d\n",val);
-			_logger -> info("Updated value wrote to file is: ",val);
+			_logger -> info("****** Updated value wrote to file is: {}",val);
 			fclose(f);
 			isDoneUpdatingFile = true;
 			for(string &m : v) {
@@ -152,30 +168,53 @@ void *MutualExclusion::handleRecvService(){
 				sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
 			}
 		}
-		char buff[256];
-		socklen_t addr = sizeof(rcv_addr);
-		recvfrom(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &rcv_addr, &addr);
-		string str(buff);
-		int typeOfMsg = atoi(strtok(buff, ":"));
-		int pId = atoi(strtok(buff, ":"));
-		int senderPort = atoi(strtok(NULL, ":"));
-		long int epoch = atol(strtok(NULL, ":"));
-		if(pId != id){
-			if(typeOfMsg == 0 ) {
+
+		//_logger -> info("before receiveFrm");
+
+		select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+		if (FD_ISSET(multicastSock, &readfds)){
+			char buff[256];
+			socklen_t addr = sizeof(rcv_addr);
+			recvfrom(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &rcv_addr, &addr);
+			string str(buff);
+			int typeOfMsg = atoi(strtok(buff, ":"));
+			//_logger -> info("after typeOfMsg : {} ",typeOfMsg);
+			int pId = atoi(strtok(NULL, ":"));
+			//_logger -> info("after pId : {} ",pId);
+			int senderPort = atoi(strtok(NULL, ":"));
+			//_logger -> info("after senderPort : {} ",senderPort);
+			long int epoch = atol(strtok(NULL, ":"));
+			if(pId != id){
+				_logger -> info("Received msg type: {} pid: {}, port: {}, epoch: {}", typeOfMsg, pId, senderPort, epoch);
+
 				if(isUpdatingFile){
+					//_logger -> info("inside isUpdatingFile");
 					v.push_back(str);
-				}else if(isDoneUpdatingFile || (hasSentRequest && atol(sentTimestamp.c_str()) > epoch)){
+				}else if(isDoneUpdatingFile || (hasSentRequest && sentTimestamp > epoch) || ((!hasSentRequest && sentTimestamp > epoch))){
+					//_logger->info("inside else isDoneUpdatingFile: {} cond: {}", isDoneUpdatingFile, (hasSentRequest && sentTimestamp > epoch));
 					p2p_addr.sin_port = htons(senderPort);
 					char buffer[256];
 					sprintf(buffer, "%s", OK);
 					sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
 				}else{
+					//_logger -> info("inside else");
 					v.push_back(str);
 				}
-			}else{
+			}
+
+
+		}
+		if(FD_ISSET(pointToPointSock, &readfds)){
+			char buffer[256];
+			socklen_t addr1 = sizeof(p2p_addr);
+			if ((recvfrom(pointToPointSock, buffer, sizeof(buffer), 0, (struct sockaddr *) &p2p_addr, &addr1))> 0) {
+				_logger -> info("Received reply: {}", buffer);
 				replyCount ++;
 			}
 		}
+
+
+		//_logger -> info("after epoch : {} ",epoch);
 	}
 }
 
@@ -193,19 +232,17 @@ static void usage(const char *progname)
 
 
 int main(int argc, char **argv) {
+
 	extern char *optarg;
 	char c;
 	long int timeDrift = TIME_DRIFT;
 	int p = PORT;
 	int  n = 0;
 	int id = 0;
-	while ((c = getopt (argc, argv, ":p:t:n:")) != -1) {
+	while ((c = getopt (argc, argv, ":p:i:n:")) != -1) {
 		switch(c) {
 		case 'i' :
 			id = atoi(optarg);
-			break;
-		case 't' :
-			timeDrift = atol(optarg);
 			break;
 		case 'n' :
 			n = atoi(optarg);
@@ -232,8 +269,8 @@ int main(int argc, char **argv) {
 	MutualExclusion mutualExclusion(id, n);
 	mutualExclusion.init();
 	mutualExclusion.createSendAndRecvThread();
-	(void) pthread_join(mutualExclusion.getSenderThread(), NULL);
 	(void) pthread_join(mutualExclusion.getRecvThread(), NULL);
+	//(void) pthread_join(mutualExclusion.getSenderThread(), NULL);
 }
 
 

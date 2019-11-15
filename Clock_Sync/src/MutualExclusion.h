@@ -13,6 +13,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <vector>
+#include <string.h>
 #include <string>
 #include <stdlib.h>
 #include <fstream>
@@ -77,7 +78,7 @@ private:
 	bool isDoneUpdatingFile;
 	int numOfProcesses;
 	bool hasSentRequest;
-	string sentTimestamp;
+	long int sentTimestamp;
 	bool isUpdatingFile;
 };
 
