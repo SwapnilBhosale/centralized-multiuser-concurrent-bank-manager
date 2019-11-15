@@ -134,6 +134,7 @@ void *MutualExclusion::handleSenderService(){
 void *MutualExclusion::handleRecvService(){
 	fd_set readfds;
 	int replyCount = 0;
+	int sentReplyCnt = 0;
 
 	//_logger -> info("Inside receive");
 	while (true) {
@@ -143,6 +144,11 @@ void *MutualExclusion::handleRecvService(){
 		FD_SET(multicastSock, &readfds);
 		FD_SET(pointToPointSock, &readfds);
 		//_logger -> info("isDoneUpdatingFile: {}, replyCount: {}, (numOfProcesses - 1): {}",isDoneUpdatingFile,replyCount,(numOfProcesses - 1));
+
+		if(isDoneUpdatingFile && sentReplyCnt == (numOfProcesses - 1)) {
+			_logger -> info("All processes has updated the file! exiting...");
+			exit(0);
+		}
 		if(!isDoneUpdatingFile && replyCount == (numOfProcesses - 1)) {
 			FILE *f = fopen("./counter.txt","r+");
 			char buffer[256];
@@ -166,6 +172,12 @@ void *MutualExclusion::handleRecvService(){
 				char buffer[256];
 				sprintf(buffer, "%s", OK);
 				sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
+				sentReplyCnt++;
+			}
+			v.clear();
+			if(isDoneUpdatingFile && sentReplyCnt == (numOfProcesses - 1)) {
+				_logger -> info("All processes has updated the file! exiting...");
+				exit(0);
 			}
 		}
 
@@ -196,6 +208,7 @@ void *MutualExclusion::handleRecvService(){
 					char buffer[256];
 					sprintf(buffer, "%s", OK);
 					sendto(pointToPointSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &p2p_addr, sizeof(p2p_addr));
+					sentReplyCnt ++;
 				}else{
 					//_logger -> info("inside else");
 					v.push_back(str);
