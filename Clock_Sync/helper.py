@@ -9,6 +9,8 @@ drift = ["50", "-20", "14"]
 N = "4"
 
 def run_program(args):
+    os.system("ifconfig lo multicast")
+    os.system("route add -net 224.0.0.0 netmask 240.0.0.0 dev lo")
     if(len(args) != 1):
         print("Please pass one of the option.")
         print("Supported options are: causal, noncausal, berkeley, bonus")
