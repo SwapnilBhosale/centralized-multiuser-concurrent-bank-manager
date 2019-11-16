@@ -9,6 +9,12 @@
 
 using namespace std;
 
+/**
+ * This is the constructor which initialized the instance variable
+ *
+ * @param NA
+ * @return NA
+ */
 
 MutualExclusion::MutualExclusion(int id, int n){
 	this->port = PORT;
@@ -30,6 +36,13 @@ MutualExclusion::MutualExclusion(int id, int n){
 	this -> isUpdatingFile = false;
 }
 
+/**
+ * This method initializes the Multicast and point to point socket
+ * Bind these sockets to the operating system and set multicast options to the socket
+ *
+ * @param NA
+ * @return NA
+ */
 void MutualExclusion::init(){
 
 	multicastSock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -93,6 +106,13 @@ void MutualExclusion::init(){
 	_logger -> info("Process {} is listening on own port {}",id, ownPort);
 }
 
+/**
+ * This method helps each process determining own port number so that, reply can be sent
+ * individually
+ *
+ * @param NA
+ * @return NA
+ */
 int MutualExclusion::getOwnPort(){
 	struct sockaddr_in coo_port;
 	socklen_t sa_len = sizeof(coo_port);
@@ -101,6 +121,9 @@ int MutualExclusion::getOwnPort(){
 	return port;
 }
 
+/**
+ * This method is responsible for creating the sender and receiver threads
+ */
 void MutualExclusion::createSendAndRecvThread() {
 	int res;
 	res = pthread_create(&senderThread, NULL, &MutualExclusion::senderServiceHelper, this);
@@ -117,6 +140,10 @@ void MutualExclusion::createSendAndRecvThread() {
 	}
 }
 
+/**
+ * This method broadcasts sends the resource request to all the processes
+ * in the group
+ */
 void *MutualExclusion::handleSenderService(){
 	sleep(5);
 	gettimeofday(&time, NULL);
@@ -131,6 +158,10 @@ void *MutualExclusion::handleSenderService(){
 	hasSentRequest = true;
 }
 
+/**
+ * This method receives the request and replies "OK" from all the processes
+ * in the group
+ */
 void *MutualExclusion::handleRecvService(){
 	fd_set readfds;
 	int replyCount = 0;
@@ -183,6 +214,8 @@ void *MutualExclusion::handleRecvService(){
 
 		//_logger -> info("before receiveFrm");
 
+		//use select system call to check which socket has data to read
+		//and then take action accordingly
 		select( max_sd + 1 , &readfds , NULL , NULL , NULL);
 		if (FD_ISSET(multicastSock, &readfds)){
 			char buff[256];
@@ -231,6 +264,12 @@ void *MutualExclusion::handleRecvService(){
 	}
 }
 
+/**
+ * This method prints the how to use CLI options
+ *
+ * @param NA
+ * @return NA
+ */
 static void usage(const char *progname)
 {
 	fprintf(stderr, "Usage: %s [options] \n", progname);
@@ -243,6 +282,12 @@ static void usage(const char *progname)
 }
 
 
+/**
+ * This is the main method where execution starts
+ *
+ * @param NA
+ * @return int
+ */
 int main(int argc, char **argv) {
 
 	extern char *optarg;
@@ -251,7 +296,7 @@ int main(int argc, char **argv) {
 	int p = PORT;
 	int  n = 0;
 	int id = 0;
-	while ((c = getopt (argc, argv, ":p:i:n:")) != -1) {
+	while ((c = getopt (argc, argv, ":i:n:")) != -1) {
 		switch(c) {
 		case 'i' :
 			id = atoi(optarg);

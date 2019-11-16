@@ -8,6 +8,10 @@
 #include "CausalOrdering.h"
 
 
+/**
+ * This is the constructor initializes the class instance variables
+
+ */
 CausalOrdering::CausalOrdering(int port, int id, char * msg){
 	this -> multicastSock = socket(AF_INET, SOCK_DGRAM, 0);;
 	this -> pointToPointSock = 0;
@@ -20,6 +24,13 @@ CausalOrdering::CausalOrdering(int port, int id, char * msg){
 	this -> process = NULL;
 }
 
+/**
+ * This method initializes the Multicast and point to point socket
+ * Bind these sockets to the operating system and set multicast options to the socket
+ *
+ * @param NA
+ * @return NA
+ */
 void CausalOrdering::init(){
 	int enable = 1;
 
@@ -89,15 +100,24 @@ void CausalOrdering::init(){
 
 }
 
+/**
+ * This method calls the thread method which handles the message sending
+ */
 void *CausalOrdering::handleSenderService(){
 	while(true)
 		process -> sendMessage();
 }
 
+/**
+ * This method calls the thread method which handles the message receiving
+ */
 void *CausalOrdering::handleRecvService(){
 	process -> receiveMessage();
 }
 
+/**
+ * This method is responsible for creating the sender and receiver threads
+ */
 void CausalOrdering::createSendAndRecvThread(){
 	int res;
 	res = pthread_create(&senderThread, NULL, &CausalOrdering::senderServiceHelper, this);
@@ -114,7 +134,9 @@ void CausalOrdering::createSendAndRecvThread(){
 	}
 }
 
-
+/**
+ * This method prints the usage of command line options
+ */
 static void usage(const char *progname)
 {
     fprintf(stderr, "Usage: %s [options] \n", progname);
@@ -127,6 +149,9 @@ static void usage(const char *progname)
     exit(EINVAL);
 }
 
+/**
+ * This is the main function
+ */
 int main(int argc, char **argv) {
 	extern char *optarg;
 	char c;

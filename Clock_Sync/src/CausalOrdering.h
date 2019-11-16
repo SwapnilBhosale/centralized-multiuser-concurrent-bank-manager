@@ -1,6 +1,6 @@
 /*
  * CausualOrdering.cpp
- *
+ *	This is the header file for the causal ordering implementation
  *  Created on: Nov 12, 2019
  *      Author: lilbase
  */

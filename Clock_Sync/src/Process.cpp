@@ -9,6 +9,11 @@
 #include "Process.h"
 #include "util/utils.cpp"
 
+
+/**
+ * This is the constructor initializes the class instance variables
+
+ */
 Processes::Processes(int id, char *msg, int soc, sockaddr_in addr1, sockaddr_in addr2, bool isCausal){
 	this-> sendCnt = 0;
 	this -> recvCnt = 0;
@@ -24,6 +29,11 @@ Processes::Processes(int id, char *msg, int soc, sockaddr_in addr1, sockaddr_in 
 		this -> _logger = spdlog::get(NON_CAUSAL);
 }
 
+
+/**
+ * This method actually multicasts the message to all the process in the group
+ * Then it sleep for few seconds after sending message
+ */
 void Processes::sendMessage(){
 	sleep(id + SLEEP_CONSTANT);
 	sendCnt += 1;
@@ -35,6 +45,11 @@ void Processes::sendMessage(){
 	sleep(id + SLEEP_CONSTANT);
 }
 
+/**
+ * This method is responsible for receiving the multicast messages from
+ * other processes. It also verifies the rules of causality
+
+ */
 void Processes::receiveMessage(){
 	char buff[256];
 	socklen_t len = sizeof(recvAddr);

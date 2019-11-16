@@ -1,6 +1,6 @@
 /*
  * utils.h
- *
+ *	This is a utility file which holds constants
  *  Created on: Nov 4, 2019
  *      Author: lilbase
  */

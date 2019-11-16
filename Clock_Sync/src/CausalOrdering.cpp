@@ -1,13 +1,16 @@
 /*
  * CausalOrdering.cpp
- *
+ *	This is the Main file implements Multicast Causal Ordering
  *  Created on: Nov 12, 2019
  *      Author: lilbase
  */
 
 #include "CausalOrdering.h"
 
+/**
+ * This is the constructor initializes the class instance variables
 
+ */
 CausalOrdering::CausalOrdering(int port, int id, char * msg){
 	this -> multicastSock = socket(AF_INET, SOCK_DGRAM, 0);;
 	this -> pointToPointSock = 0;
@@ -20,6 +23,13 @@ CausalOrdering::CausalOrdering(int port, int id, char * msg){
 	this -> process = NULL;
 }
 
+/**
+ * This method initializes the Multicast and point to point socket
+ * Bind these sockets to the operating system and set multicast options to the socket
+ *
+ * @param NA
+ * @return NA
+ */
 void CausalOrdering::init(){
 	int enable = 1;
 
@@ -52,10 +62,12 @@ void CausalOrdering::init(){
 	memcpy(&mreq.imr_multiaddr.s_addr, (void*)&recvAddr.sin_addr, sizeof(struct in_addr));
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
+	//add support of multicast socket
 	struct ip_mreq multicast_req;
 	multicast_req.imr_multiaddr.s_addr = inet_addr(HOST);
 	multicast_req.imr_interface.s_addr = htonl(INADDR_ANY);
 
+	//add self to the multicast group
 	if (setsockopt(multicastSock,
 			IPPROTO_IP, IP_ADD_MEMBERSHIP,
 			&multicast_req, sizeof(multicast_req)) < 0)
@@ -89,15 +101,26 @@ void CausalOrdering::init(){
 
 }
 
+/**
+ * This method calls the thread method which handles the message sending
+ */
 void *CausalOrdering::handleSenderService(){
 	while(true)
 		process -> sendMessage();
 }
 
+
+/**
+ * This method calls the thread method which handles the message receiving
+ */
 void *CausalOrdering::handleRecvService(){
 	process -> receiveMessage();
 }
 
+
+/**
+ * This method is responsible for creating the sender and receiver threads
+ */
 void CausalOrdering::createSendAndRecvThread(){
 	int res;
 	res = pthread_create(&senderThread, NULL, &CausalOrdering::senderServiceHelper, this);
@@ -115,6 +138,10 @@ void CausalOrdering::createSendAndRecvThread(){
 }
 
 
+
+/**
+ * This method prints the usage of command line options
+ */
 static void usage(const char *progname)
 {
     fprintf(stderr, "Usage: %s [options] \n", progname);
@@ -126,6 +153,10 @@ static void usage(const char *progname)
     exit(EINVAL);
 }
 
+
+/**
+ * This is the main function
+ */
 int main(int argc, char **argv) {
 	extern char *optarg;
 	char c;
@@ -153,12 +184,16 @@ int main(int argc, char **argv) {
 	}
 	pid_t pid = getpid();
 
+	//create logger
 	string logFileName = string("./logs/").append(CAUSAL).append("_").append(to_string(pid)).append(".txt");
 	std::vector<spdlog::sink_ptr> sinks;
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFileName,1024 * 1024 * 50, 10, true));
 	auto combined_logger = std::make_shared<spdlog::logger>(CAUSAL, begin(sinks), end(sinks));
+
+	//set log level to info
 	combined_logger -> set_level(spdlog::level::info);
+	//set log pattern
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);
 	CausalOrdering causalOrdering(p, id, msg);

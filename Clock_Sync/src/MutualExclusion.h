@@ -1,6 +1,6 @@
 /*
  * MutualExclusion.h
- *
+ * 	This is the header file for the bonus assignment
  *  Created on: Nov 14, 2019
  *      Author: lilbase
  */

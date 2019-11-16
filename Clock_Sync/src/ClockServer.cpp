@@ -1,6 +1,6 @@
 /*
  * ClockServer.cpp
- *
+ *	This class file implements the distributed Berkeley clock sync algorithm
  *  Created on: Nov 4, 2019
  *      Author: Swapnil Bhosale
  */
@@ -10,6 +10,9 @@
 using namespace std;
 
 
+/**
+ * This is the constuctore which initializes the class variables
+ */
 ClockServer::ClockServer(int port, bool isCordinator, long timeDrift){
 	this->port = port;
 	this -> _logger = spdlog::get("ClockServer");
@@ -24,6 +27,14 @@ ClockServer::ClockServer(int port, bool isCordinator, long timeDrift){
 	this -> cooPort = 0;
 }
 
+
+/**
+ * This method initializes the Multicast and point to point socket
+ * Bind these sockets to the operating system and set multicast options to the socket
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::init(){
 
 	multicastSock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -83,12 +94,13 @@ void ClockServer::init(){
 		exit(1);
 	}
 
+	//if process is cordinator then do this
 	if (isCordinator){
 		sendCordinatorClock();
 		sendCordinatorPortForP2P();
 		calcualteTheAverageTime();
 
-	}else{
+	}else{		//process is not cordinator
 		receiveServerTime();
 		getCooPort();
 		calculateAndSendDrift();
@@ -100,6 +112,12 @@ void ClockServer::init(){
 	_logger -> info("server listening on port {}", port);
 }
 
+/**
+ * This method helps in initializing the server port value with the port on which coordinator is listening
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::getCooPort(){
 	char message[256];
 	socklen_t addr = sizeof(rcv_addr);
@@ -108,6 +126,13 @@ void ClockServer::getCooPort(){
 	this -> cooPort = atoi(message);
 }
 
+/**
+ * This method multicasts coordinator port number to all other process
+ * for point to point communication needed in later stage of algorithm
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::sendCordinatorPortForP2P(){
 	struct sockaddr_in coo_port;
 	socklen_t sa_len = sizeof(coo_port);
@@ -119,6 +144,13 @@ void ClockServer::sendCordinatorPortForP2P(){
 	sendto(multicastSock, buffer, strlen(buffer), 0, (struct sockaddr *) &rcv_addr, sizeof(rcv_addr));
 }
 
+/**
+ * This method calculates the drift using the value received from the server
+ * And sends this diff to the coordinator process
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::calculateAndSendDrift(){
 	_logger -> info("Server port is : {} ",cooPort);
 	p2p_addr.sin_port = htons(cooPort);
@@ -131,6 +163,13 @@ void ClockServer::calculateAndSendDrift(){
 
 }
 
+/**
+ * This method is run by coordinator. It calcualted the average from the drift received from all clients.
+ * Also muticasts this average to all the clients and syncs own clock
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::calcualteTheAverageTime(){
 	sleep(5);
 	int average = 0;
@@ -172,6 +211,14 @@ void ClockServer::calcualteTheAverageTime(){
 	sendto(multicastSock, buff, sizeof(buff), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
 }
 
+/**
+ * This method is executed by clients.
+ * Receives the average value from the coordinator and sync own clock
+ *
+ * @param NA
+ * @return NA
+ */
+
 void ClockServer::receiveUpdatedClockFromCoo(){
 	_logger -> info("Waiting to receive clock from coo");
 	char buffer[256];
@@ -184,6 +231,13 @@ void ClockServer::receiveUpdatedClockFromCoo(){
 
 }
 
+/**
+ * This method is executed by client and used in receiving the initial clock value
+ * from the coordinator
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::receiveServerTime(){
 	char message[256];
 	socklen_t addr = sizeof(rcv_addr);
@@ -205,6 +259,13 @@ void ClockServer::printDate(timeval time){
 	_logger ->info("Clock value is {}",buf);
 }
 
+/**
+ * This method is executed by coordinator and used in sending the initial clock value
+ * from the coordinator
+ *
+ * @param NA
+ * @return NA
+ */
 void ClockServer::sendCordinatorClock(){
 	string epoch(to_string(time.tv_sec));
 	sendto(multicastSock, epoch.c_str(), epoch.length(), 0, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
@@ -213,7 +274,12 @@ void ClockServer::sendCordinatorClock(){
 
 
 
-
+/**
+ * This method prints the how to use CLI options
+ *
+ * @param NA
+ * @return NA
+ */
 static void usage(const char *progname)
 {
     fprintf(stderr, "Usage: %s [options] \n", progname);
@@ -226,6 +292,12 @@ static void usage(const char *progname)
 }
 
 
+/**
+ * This is the main method where execution starts
+ *
+ * @param NA
+ * @return int
+ */
 int main(int argc, char **argv) {
 	extern char *optarg;
 	char c;
@@ -251,11 +323,16 @@ int main(int argc, char **argv) {
 	}
 	pid_t pid = getpid();
 
+	//create logger file name
 	string logFileName = string("./logs/ClockServer").append("_").append(to_string(pid)).append(".txt");
 	std::vector<spdlog::sink_ptr> sinks;
+
+	//create rotating file and console appenders
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFileName,1024 * 1024 * 50, 10, true));
 	auto combined_logger = std::make_shared<spdlog::logger>("ClockServer", begin(sinks), end(sinks));
+
+	//set log info and log pattern
 	combined_logger -> set_level(spdlog::level::info);
 	combined_logger -> set_pattern("[%Y-%m-%d %H:%M:%S.%e] [Thread - %t] [%l] %v");
 	spdlog::register_logger(combined_logger);

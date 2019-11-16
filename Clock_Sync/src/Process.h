@@ -1,6 +1,8 @@
 /*
  * Process.h
- *
+ *	This is the header file for the each individual process
+ *	It defines class which holds the variables and method bound to each process in Causal and NonCausal
+ *	Ordering
  *  Created on: Nov 13, 2019
  *      Author: lilbase
  */
