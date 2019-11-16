@@ -237,9 +237,8 @@ static void usage(const char *progname)
 	/* 80 column ruler:  ********************************************************************************
 	 */
 	fprintf(stderr, "Options are:\n");
-	fprintf(stderr, "    -t TimeDrift     Time drift from current clock epoch, Default +10\n");
-	fprintf(stderr, "    -p port  	      	    port to listen, Default is 8080\n");
-	fprintf(stderr, "    -f file         	    Address of startup data file for customers, Default is './src/Records.txt'\n");
+	fprintf(stderr, "    -i process_id      Process id of this process. Sould start from 0\n");
+	fprintf(stderr, "    -n total processes Total number of processes in the group\n");
 	exit(EINVAL);
 }
 

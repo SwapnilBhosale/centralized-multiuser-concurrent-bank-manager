@@ -121,9 +121,8 @@ static void usage(const char *progname)
 /* 80 column ruler:  ********************************************************************************
  */
     fprintf(stderr, "Options are:\n");
-    fprintf(stderr, "    -t TimeDrift     Time drift from current clock epoch, Default +10\n");
-    fprintf(stderr, "    -p port  	      	    port to listen, Default is 8080\n");
-    fprintf(stderr, "    -f file         	    Address of startup data file for customers, Default is './src/Records.txt'\n");
+    fprintf(stderr, "    -i process_id     This is the id of the participating process\n");
+    fprintf(stderr, "    -m message  	   This is the message which will be sent\n");
     exit(EINVAL);
 }
 
@@ -135,13 +134,8 @@ int main(int argc, char **argv) {
 	bool isCordinator = false;
 	int id;
 	char * msg;
-	while ((c = getopt (argc, argv, ":p:i:m:")) != -1) {
+	while ((c = getopt (argc, argv, ":i:m:")) != -1) {
 		switch(c) {
-		case 'p' :
-			p = atoi(optarg);
-			if(p <= 0)
-				usage(argv[0]);
-			break;
 		case 'm' :
 			msg = optarg;
 			break;

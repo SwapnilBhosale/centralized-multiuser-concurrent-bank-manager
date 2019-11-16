@@ -221,8 +221,7 @@ static void usage(const char *progname)
  */
     fprintf(stderr, "Options are:\n");
     fprintf(stderr, "    -t TimeDrift     Time drift from current clock epoch, Default +10\n");
-    fprintf(stderr, "    -p port  	      	    port to listen, Default is 8080\n");
-    fprintf(stderr, "    -f file         	    Address of startup data file for customers, Default is './src/Records.txt'\n");
+    fprintf(stderr, "    -s server  	  Set this option if this process is Server\n");
     exit(EINVAL);
 }
 
@@ -233,13 +232,8 @@ int main(int argc, char **argv) {
 	long int timeDrift = TIME_DRIFT;
 	int p = PORT;
 	bool isCordinator = false;
-	while ((c = getopt (argc, argv, ":p:t:s:")) != -1) {
+	while ((c = getopt (argc, argv, ":t:s:")) != -1) {
 		switch(c) {
-		case 'p' :
-			p = atoi(optarg);
-			if(p <= 0)
-				usage(argv[0]);
-			break;
 		case 't' :
 			timeDrift = atol(optarg);
 			break;
