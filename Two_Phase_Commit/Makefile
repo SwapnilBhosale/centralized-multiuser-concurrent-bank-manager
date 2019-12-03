@@ -1,25 +1,31 @@
-PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ 
+FLAGS = -std=c++11 -lpthread
+LDFLAGS = -lpthread
 
-OBJS = Two_Phase_Commit.o
+BACKEND_TARGET = Backend
+FRONTEND_TARGET = Frontend
+CLIENT_TARGET = Client
 
-ifeq ($(BUILD_MODE),debug)
-	CFLAGS += -g
-else ifeq ($(BUILD_MODE),run)
-	CFLAGS += -O2
-else
-	$(error Build mode $(BUILD_MODE) not supported by this Makefile)
-endif
+LOG_LIBRARY_HEADERS = src/include/
 
-all:	Two_Phase_Commit
+BACKEND_SRC = $(shell echo src/back_end_server/*.cpp) $(shell echo src/utils/*.cpp)
+FRONTEND_SRC = $(shell echo src/fron_end_server/*.cpp) $(shell echo src/utils/*.cpp)
+CLIENT_SRC = $(shell echo src/client/*.cpp) $(shell echo src/utils/*.cpp)
 
-Two_Phase_Commit:	$(OBJS)
-	$(CXX) -o $@ $^
 
-%.o:	$(PROJECT_ROOT)%.cpp
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
-
-%.o:	$(PROJECT_ROOT)%.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+compile: ${BACKEND_TARGET} ${FRONTEND_TARGET} ${CLIENT_TARGET}
 
 clean:
-	rm -fr Two_Phase_Commit $(OBJS)
+	rm -f src/back_end_server/*.o src/front_end_server/*.o src/client/*.o src/utils/*.o $(BACKEND_TARGET) $(FRONTEND_TARGET) ${CLIENT_TARGET}
+
+%.o : %.cpp
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) -c $< -o $@
+
+${BACKEND_TARGET}: $(BACKEND_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(BACKEND_SRC) -o $(BACKEND_TARGET) ${LDFLAGS}
+	
+${FRONTEND_TARGET}: $(FRONTEND_SRC)
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(FRONTEND_SRC) -o $(FRONTEND_TARGET) ${LDFLAGS}
+	
+${CLIENT_TARGET}: ${CLIENT_SRC}
+	g++ $(FLAGS) -I$(LOG_LIBRARY_HEADERS) $(CLIENT_SRC) -o $(CLIENT_TARGET) ${LDFLAGS}

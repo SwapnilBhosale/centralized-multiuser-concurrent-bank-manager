@@ -103,20 +103,20 @@ void * ServerSock::enter_server_loop() {
  * @param client_socket this is the client file descriptor
  */
 void ServerSock::handle_client(int client_socket) {
-	char buffer[1024];
+	char buffer[256];
 
-	struct timeval tv;
+	/*struct timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-	long int n = recv(client_socket, &buffer, 1024, 0);
+	long int n = recv(client_socket, &buffer, sizeof(buffer), 0);
 	buffer[n]= '\0';
 	unsigned long len = strlen(buffer);
 	_logger -> info("received data len: {}, data: {}",len, buffer);
 
-	//notify the observants. In our case BankServer is the observant
+	//notify the observants. In our case BankServer is the observant*/
 	obj->notify_observants(buffer, client_socket);
-	close(client_socket);
-	return;
+	//close(client_socket);*
+	//return;
 }
 

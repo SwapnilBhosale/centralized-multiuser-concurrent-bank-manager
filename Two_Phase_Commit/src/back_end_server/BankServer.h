@@ -36,7 +36,7 @@ class BankServer: public Observer{
 public:
 	BankServer();
 	virtual ~BankServer();
-	void init(std::string serverFile, int port, int threadCount);
+	void init(int port, int threadCount);
 
 	void static print_stats(int signal_number);
 	void create_thread(int index, ServerSock *serverSock);
@@ -45,27 +45,18 @@ public:
 	void notify(char * data, int clientSocket){
 		do_action(data, clientSocket);
 	}
-	static void *intrest_service_invoke_helper(void *context){
-		return ((BankServer *)context)->handle_intrest_service();
-	}
 
-	void  * handle_intrest_service();
-
-	pthread_t get_intrest_Service_thread(){
-		return intrest_service__thread;
-	}
 	inline static int count;
 
 private:
 	ServerSock *serverSock;
 	pthread_t threads[THREADS_COUNT];
-	pthread_t intrest_service__thread;
 	inline static std::unordered_map<int, Customer> customer_map;
 	inline static std::unordered_map< int, std::vector< Transaction > > transaction_map;
 	std::string withdrawal(std::string tstamp, std::string account_id, std::string amount);
 	std::string deposit(std::string tstamp, std::string account_id, std::string amount);
-	void initialize_static_data(std::string ipFile);
-	void create_intrest_service();
+	//void initialize_static_data(std::string ipFile);
+	//void create_intrest_service();
 	void update_customer_map(Customer c);
 	pthread_mutex_t mutex_map;
 	std::shared_ptr<spdlog::logger> _logger;
@@ -73,6 +64,8 @@ private:
 	std::string update_customer_by_id(int id, double amount, int op);
 	pthread_mutex_t mutex1,mwrite,mread,rallow;
 	int readcount=0,writecount=0;
+	int createTransaction(float bal);
+	float queryTransaction(int acc);
+	float updateTransaction(int acct, float amt);
 };
 
-#endif /* SERVER_H_ */

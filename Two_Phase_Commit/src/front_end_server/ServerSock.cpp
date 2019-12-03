@@ -105,7 +105,7 @@ void * ServerSock::enter_server_loop() {
 void ServerSock::handle_client(int client_socket) {
 	char buffer[256];
 
-	struct timeval tv;
+	/*struct timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 	setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
@@ -114,7 +114,7 @@ void ServerSock::handle_client(int client_socket) {
 	unsigned long len = strlen(buffer);
 	_logger -> info("received data len: {}, data: {}",len, buffer);
 
-	//notify the observants. In our case BankServer is the observant
+	//notify the observants. In our case BankServer is the observant*/
 	obj->notify_observants(buffer, client_socket);
 	close(client_socket);
 	return;

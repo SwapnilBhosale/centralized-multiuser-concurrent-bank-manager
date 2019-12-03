@@ -14,7 +14,7 @@ BankServer::BankServer() {
 	rallow = PTHREAD_MUTEX_INITIALIZER;
 	serverSock = NULL;
 	mutex_map = PTHREAD_MUTEX_INITIALIZER;
-	_logger = spdlog::get("FrontEndServer");
+	_logger = spdlog::get("BackEndServer");
 
 }
 
@@ -196,6 +196,41 @@ std::string BankServer::deposit(std::string tstamp, std::string acc_no,
 	return msg;
 }
 
+
+int BankServer::createTransaction(float bal){
+	//int amount_received = bal;
+	int account_tobesend;
+	CustomerBuilder b;
+	int act = Customer::getNextAccNumber();
+	Customer c = b.set_account_number(act).set_balance(bal).build();
+	BankServer::customer_map[act] = c;
+	return c.getAccountNumber();
+}
+
+float BankServer::queryTransaction(int acc){//acc = 101
+	//cout << "Received input: " << acc;
+	//int value = 2;
+	float result = 0;
+	if (!(BankServer::customer_map.find(acc) == BankServer::customer_map.end())){
+		result = BankServer::customer_map[acc].getBalance();
+	}else{
+		_logger -> info("Account with id: {} does not exists",acct);
+	}
+	return result;
+
+}
+
+float BankServer::updateTransaction(int acct, float amt)
+{
+
+	if (! (BankServer::customer_map.find(acct) == BankServer::customer_map.end())){
+		BankServer::customer_map[acct].setBalance(amt);
+	}else{
+		_logger -> info("Account with id: {} does not exists", acct);
+	}
+	return amt;
+}
+
 /**
  * This method actually calls to withdrawl or deposit method
  * @param data This is the data received from the client
@@ -205,191 +240,143 @@ void BankServer::do_action(char *data, int clientSocket) {
 	count += 1;
 	char *buf;
 	std::string msg;
-	//std::string arr[4];
-	//splitString(arr, std::string(data));
-	int backendClient[3];
-	int backendPorts[3];
-	backendPorts[0] = htons(SERVER1);
-	backendPorts[1] = htons(SERVER2);
-	backendPorts[2] = htons(SERVER3);
-
-	int backendServerCount = 0;
-	int backendServerConn[3];
-
-	for (int i = 0; i < 3; i++) {
-
-		struct sockaddr_in serv_addr;
-		if ((backendClient[i] = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-			perror("\n Socket creation error \n");
-		}
-		serv_addr.sin_family = PF_INET;
-		serv_addr.sin_port = htons(backendPorts[i]);
-		// Convert IPv4 and IPv6 addresses from text to binary form
-		if (inet_pton(PF_INET, this->backendHost.c_str(), &serv_addr.sin_addr)
-				<= 0) {
-			perror("\nInvalid address/ Address not supported \n");
-		}
-
-		if (connect(backendClient[i], (struct sockaddr*) &serv_addr,
-				sizeof(serv_addr)) < 0) {
-			perror("\nConnection Failed \n");
-			backendServerConn[i] = 0;
-		} else {
-			backendServerConn[i] = 1;
-			backendServerCount += 1;
-		}
-	}
-
 	while (true) {
-
 		char msg[256];
-		char status[256];
-
-		//Read from client
-		int r1 = read(clientSocket, msg, sizeof(msg));
-		//cout<<"Transaction received: " << message << endl;
-
-		//check and change the transaction details to uppercase
-		for (int i = 0; i < sizeof(msg); i++) {
-			msg[i] = toupper(msg[i]);
-		}
-
-		_logger->info("transaction received: {}", msg);
-
-		if (strcmp(msg, "QUIT") == 0) {
-			int s = send(clientSocket, "OK", 3, 0);
-
-			close(clientSocket);
-			break;
-		}
-
-		//ask the backend servers to provide their status
-		for (int i = 0; i < 3; i++) {
-			if (backendServerConn[i] == 1) {
-				int status = send(backendClient[i], "VOTE", 256, 0);
-			}
-		}
-
-		//Recieve status reply from the backend servers
-		struct timeval timeout;
-		timeout.tv_sec = 3;
-		timeout.tv_usec = 0;
-		backendServerConn[0] = 0;
-		backendServerConn[1] = 0;
-		backendServerConn[2] = 0;
-		char buff[256];
-		int count = 0;
-
-		for (int i = 0; i < 3; i++) {
-			if (setsockopt(backendClient[i], SOL_SOCKET, SO_RCVTIMEO,
-					(char*) &timeout, sizeof(timeout)) < 0) {
-				perror("timeout error");
-				exit(0);
-
-			}
-			while (recv(backendClient[i], buff, 256, 0) > 0) {
-				count++;
-				backendServerConn[i] = 1;
-			}
-		}
-		//cout << "Count: "<< count << endl;
-		if (count == 0) {
-			_logger->warn("Active backend server count is zero!");
-		}
-		_logger->info("Active backend server count is: {}", backendServerCount);
-
-		//sleep(3);
-
-		if (count == 0) {
-			//cout << "No active backend servers" << endl;
-			sprintf(status, "ERROR: Please try after sometime");
-			int s = send(clientSocket, status, sizeof(status), 0);
-		} else {
-			if (count == backendServerCount) {
-				char buffer[256];
-				for (int i = 0; i < 3; i++) {
-					if (recv(backendClient[i], buffer, 256, 0) != 0) {
-						if (backendServerConn[i] == 1) {
-							int s3 = send(backendClient[i], "COMMIT", 256, 0);
-
-							backendServerCount++;
-						}
-					} else {
-						backendServerConn[i] = 0;
-					}
-
-				}
-
-				bzero(buffer, 256);
-				backendServerCount = 0;
-				for (int i = 0; i < 3; i++) {
-
-					if (recv(backendClient[i], buffer, 256, 0) != 0) {
-						if (backendServerConn[i] == 1) {
-							int s4 = send(backendClient[i], msg, sizeof(msg),
-									0);
-							backendServerCount++;
-						}
-					} else {
-						backendServerConn[i] = 0;
-					}
-				}
-
-				//Receive the updated transaction from the backend servers
-				int y = 0;
-				backendServerCount = 0;
-
-				bzero(buffer, 256);
-				bzero(status, 256);
-				for (int i = 0; i < 3; i++) {
-
-					if (recv(backendClient[i], status, 256, 0) != 0) {
-						if (backendServerConn[i] == 1) {
-
-							backendServerCount++;
-						}
-					} else {
-						backendServerConn[i] = 0;
-					}
-
-				}
-
-				int s3 = send(clientSocket, status, sizeof(status), 0);
-
-			} else {
-				int sock_closed;
-
-				backendServerCount = 0;
-				for (int i = 0; i < 3; i++) {
-					if (setsockopt(backendClient[i], SOL_SOCKET, SO_RCVTIMEO,
-							(char*) &timeout, sizeof(timeout)) < 0) {
-						perror("Timeout error!");
-						exit(0);
-
-					}
-					if (backendServerConn[i] == 1) {
-						send(backendClient[i], "ABORT", 256, 0);
-						backendServerCount++;
-					}
-				}
-				for (int i = 0; i < 3; i++) {
-					if (setsockopt(backendClient[i], SOL_SOCKET, SO_RCVTIMEO,
-							(char*) &timeout, sizeof(timeout)) < 0) {
-						perror("Timeout error!");
-						exit(0);
-					}
-					if (backendServerConn[i] == 1) {
-						int rd = read(backendClient[i], status, sizeof(status));
-					}
-				}
-
-				int s3 = send(clientSocket, status, sizeof(status), 0);
-			}
-		}
-
 		bzero(msg, 256);
-		bzero(buff, 256);
+		int rcv = read(clientSocket, msg, sizeof(msg));
+		_logger -> info("Message  received from front-end is: {}",msg);
+		if (rcv != 0) {
+			int s1 = send(clientSocket, "ACTIVE", 256, 0);
+		}
 
+		char commitStatus[256];
+		bzero(commitStatus, 256);
+		int receive2 = read(clientSocket, commitStatus, sizeof(commitStatus));
+		_logger -> info("commit status is: {}",commitStatus);
+
+		char msg1[256];
+		bzero(msg1, 256);
+
+		char result[256];
+		bzero(result, 256);
+
+		//Read transaction
+		//If message is not equal to global commit
+		if ((strcmp(commitStatus, "ABORT")) != 0) {
+			read(clientSocket, msg1, sizeof(msg1));
+			_logger ->info("transaction details is:  {}",msg1);
+		} else {
+			//If message is equal to global abort
+
+			sprintf(result,
+					"Error: can't connect to backend server");
+			int s1 = send(clientSocket, result,
+					sizeof(result), 0);
+			bzero(msg, 256);
+			bzero(commitStatus, 256);
+			bzero(result, 256);
+			bzero(msg1, 256);
+
+		}
+		if (((strcmp(commitStatus, "COMMIT")) == 0)
+				&& ((strcmp(commitStatus, "ABORT")) != 0)) {
+			char *split_transaction;
+			float balance;
+			split_transaction = strtok(msg1, " ");
+			//balance = strtok(NULL, " ");
+			if (split_transaction != NULL) {
+
+				//performs required operations when a transaction contains "CREATE"
+				if (strcmp(split_transaction, "CREATE") == 0) {
+
+					pthread_mutex_lock (&mutex1);
+
+					balance = atof(strtok(NULL, " "));
+					//cout <<"Value in current transaction: " << balance << endl;
+					int account_created = createTransaction(balance);
+
+					sprintf(result, "OK %d",
+							account_created);
+					int s1 = send(clientSocket, result,
+							sizeof(result), 0);
+					pthread_mutex_unlock(&mutex1);
+					_logger -> info("transaction:{} is successful",split_transaction);
+
+				}
+				//performs required operations when a transaction contains "QUERY"
+				else if (strcmp(split_transaction, "QUERY") == 0) {
+
+					pthread_mutex_lock (&mutex1);
+
+					int account_tobechecked = atoi(strtok(NULL, " "));	//101
+					float amount_received = queryTransaction(
+							account_tobechecked);				//2 or 101
+					//cout << "Amount received: " << amount_received << endl;
+
+					if (amount_received == 1000) {
+						//cout << "Testing in query........................." << endl;
+						sprintf(result,
+								"ERR: Account %d does not exist",
+								account_tobechecked);
+
+						int s1 = send(clientSocket, result,
+								sizeof(result), 0);
+						_logger -> warn ("could not complete the transaction");
+					} else {
+						sprintf(result, "OK %.2f",
+								amount_received);
+
+						int s1 = send(clientSocket, result,
+								sizeof(result), 0);
+						_logger -> info("transaction successfull");
+					}
+					pthread_mutex_unlock(&mutex1);
+				}
+
+				//performs required operations when a transaction contains "UPDATE"
+				else if (strcmp(split_transaction, "UPDATE") == 0) {
+
+					pthread_mutex_lock (&mutex1);
+
+					int accountNumber = atoi(strtok(NULL, " "));
+					float amountReceived = atof(strtok(NULL, " "));
+
+					float amountUpdated = updateTransaction(accountNumber,
+							amountReceived);						//2 or 101
+					if (amountUpdated == 1000) {
+						//cout << "Testing in update........................." << endl;
+						sprintf(result,
+								"Err Account %d does not exist", accountNumber);
+
+						int s = send(clientSocket, result,
+								sizeof(result), 0);
+						_logger -> warn("update transaction unsuccessfull");
+					}
+
+					else {
+
+						sprintf(result, "OK %.2f",
+								amountUpdated);
+						int s = send(clientSocket, result,
+								sizeof(result), 0);
+						_logger -> info("update transaction completed successfully!");
+
+					}
+					pthread_mutex_unlock(&mutex1);
+				}
+
+				else {
+					sprintf(result,
+							"Error: This transaction is not valid");
+					int s1 = send(clientSocket, result,
+							sizeof(result), 0);
+					_logger ->warn("invalid command!");
+				}
+			}
+
+		}
+
+		bzero(result, 256);
 	}
 	close(clientSocket);
 }
@@ -407,10 +394,9 @@ BankServer::~BankServer() {
  * @param port It is a port number for the server to listen on
  * @param threadCount This is the thread count for the thread pool
  */
-void BankServer::init(int port, int threadCount, std::string host) {
+void BankServer::init(int port, int threadCount) {
 	//initialize_static_data(serverFile);
 	serverSock = new ServerSock(port);
-	this->backendHost = host;
 	serverSock->init();
 	//create_intrest_service();
 	for (int i = 0; i < threadCount; ++i) {
@@ -539,8 +525,8 @@ int main(int argc, char **argv) {
 	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 	sinks.push_back(
 			std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-					"./logs/FrontEndServer.txt", 1024 * 1024 * 50, 10, true));
-	auto combined_logger = std::make_shared<spdlog::logger>("FrontEndServer",
+					"./logs/BackEndServer.txt", 1024 * 1024 * 50, 10, true));
+	auto combined_logger = std::make_shared<spdlog::logger>("BackEndServer",
 			begin(sinks), end(sinks));
 
 	//set log level
@@ -560,6 +546,6 @@ int main(int argc, char **argv) {
 	//catch for signal
 	std::signal(SIGINT, server.print_stats);
 	signal(SIGPIPE, server.print_stats);
-	server.init(p, thread_count, host);
+	server.init(p, thread_count);
 
 }

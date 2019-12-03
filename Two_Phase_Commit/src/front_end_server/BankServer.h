@@ -36,7 +36,7 @@ class BankServer: public Observer{
 public:
 	BankServer();
 	virtual ~BankServer();
-	void init(std::string serverFile, int port, int threadCount);
+	void init(int port, int threadCount, std::string host);
 
 	void static print_stats(int signal_number);
 	void create_thread(int index, ServerSock *serverSock);
@@ -64,6 +64,7 @@ private:
 	std::string update_customer_by_id(int id, double amount, int op);
 	pthread_mutex_t mutex1,mwrite,mread,rallow;
 	int readcount=0,writecount=0;
+	std::string backendHost;
+
 };
 
-#endif /* SERVER_H_ */

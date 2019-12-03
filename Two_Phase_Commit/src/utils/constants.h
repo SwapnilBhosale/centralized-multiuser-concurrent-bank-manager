@@ -21,8 +21,9 @@
 #define THREAD_MAX 5000
 #define HOST "127.0.0.1"
 #define FRONT_END_PORT 8080
-#define FILE "./src/Transactions.txt"
-#define SERVER_FILE "./src/Records.txt"
+#define SERVER1 8000
+#define SERVER2 8001
+#define SERVER3 8002
 
 
 #endif /* UTILS_CONSTANTS_H_ */

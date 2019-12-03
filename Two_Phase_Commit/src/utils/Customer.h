@@ -14,13 +14,19 @@
 #include "constants.h"
 
 class Customer {
+public:
+	static int cnt;
 	friend class CustomerBuilder;
 private:
 	std::string name;
 	int account_number;
-	long double balance;
+	float balance;
 	pthread_mutex_t mutex_balance = PTHREAD_MUTEX_INITIALIZER;
 public:
+
+	static int getNextAccNumber() {
+		return Customer::cnt++;
+	}
 	int getAccountNumber() const
 	{
 		return account_number;
@@ -31,12 +37,12 @@ public:
 		account_number = accountNumber;
 	}
 
-	long double getBalance() const
+	float getBalance() const
 	{
 		return balance;
 	}
 
-	void setBalance(double balance)
+	void setBalance(float balance)
 	{
 		this->balance = balance;
 	}
@@ -51,11 +57,11 @@ public:
 		this->name = name;
 	}
 
-	void add_money(double money) {
+	void add_money(float money) {
 		this -> balance = this -> balance + money;
 	}
 
-	void reduce_money(double money) {
+	void reduce_money(float money) {
 		this -> balance = this ->balance - money;
 	}
 
