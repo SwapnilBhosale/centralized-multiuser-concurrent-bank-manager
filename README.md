@@ -1,6 +1,8 @@
-# CMSC 621 CLOCK, MULTICAST and COMMIT
+# UMBC CMSC 621  Advanced Operating System 
 
-## This project conntaines three miniprojects
+## CLOCK, MULTICAST and COMMIT
+
+## This project conntaines three miniprojects which I implemented as a part of Coursework
 
 1. Centralized Multi User Concurrent Bank Account Manager
 2. Two Phase Commit protocol 
