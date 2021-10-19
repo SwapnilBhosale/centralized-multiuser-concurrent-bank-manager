@@ -75,4 +75,3 @@ private:
 	int readcount=0,writecount=0;
 };
 
-#endif /* SERVER_H_ */
