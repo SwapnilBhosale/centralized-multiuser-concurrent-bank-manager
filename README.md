@@ -15,23 +15,32 @@ Just run make file to compile and create executables.
 2. Uses Thread-Pool implementation for concurrency
 3. Uses Apache AB tool to test concurrency and server KPI such as Requests Per Minutes etc.
 
-#### client options
+We benchmark the bank server by sending 50000 transactional total with client varying from 30 to 300.
+The total_no_req/sec and total_time are calculated and plotted.
+
+When you kill the Server it also prints the stats about request/sec and other KPI's
+
+
+#### Client CLI options
+```
 Usage: ./Client [options]
 Options are:
 -n requests     Number of requests to perform, Default is 20000
--c concurrency  Number of concurrent requests to make, Default is 30\n");
--h host  	    Host to connect to, Default is 127.0.0.1\n");
--p port  	    Port to connect to, Default is 8080\n");
--f file         Address Transaction file address, Default is './src/Transactions.txt'\n");
+-c concurrency  Number of concurrent requests to make, Default is 30
+-h host  	    Host to connect to, Default is 127.0.0.1
+-p port  	    Port to connect to, Default is 8080
+-f file         Address Transaction file address, Default is ./src/Transactions.txt
+```
 
 
-#### server options
+#### Server CLI options
+```
 Usage: ./Server [options]
 Options are:
 -t thread pool size     Thread pool count, Default is 100;
 -p port                 Server port to listen, Default is 8080
--f file                 Address of startup data file for customers, Default is './src/Records.txt'
-
+-f file                 Address of startup data file for customers, Default is ./src/Records.txt
+```
 
 #### how to compile and run
 ```
